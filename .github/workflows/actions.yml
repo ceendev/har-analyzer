@@ -13,29 +13,6 @@ permissions:
   contents: read
 
 jobs:
-  diagnose-marketplace-identity:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    environment: marketplace
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - name: Sign in to Azure with GitHub OIDC
-        uses: azure/login@v2
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          allow-no-subscriptions: true
-      - name: Resolve Azure DevOps Marketplace profile ID
-        run: |
-          az rest \
-            --method get \
-            --url 'https://app.vssps.visualstudio.com/_apis/profile/profiles/me?api-version=7.1' \
-            --resource '499b84ac-1321-427f-aa17-267ca6975798' \
-            --query '{id:id,displayName:displayName,publicAlias:publicAlias}' \
-            --output json
-
   build:
     runs-on: ubuntu-latest
     steps:

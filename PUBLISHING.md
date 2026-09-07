@@ -38,10 +38,12 @@ identity setup below also requires an Azure subscription.
    `yeceen-har-analyzer-publisher` with **Stakeholder** access, and leave it out
    of all projects. Azure DevOps must create a profile for the service
    principal before Marketplace can recognize it.
-4. Run the workflow's manual identity diagnostic once and copy the returned
-   Azure DevOps profile `id` (a GUID). In Marketplace, open publisher `yeceen` >
-   **Members**, enter that profile ID as **User Id**, and grant **Contributor**
-   access. Do not enter the Azure ARM resource ID or managed identity client ID.
+4. For this setup, the managed identity's Azure DevOps profile ID is
+   `d1293f52-f554-6e55-bff9-72b38df5cfca`. In Marketplace, open publisher
+   `yeceen` > **Members**, enter that profile ID as **User Id**, and grant
+   **Contributor** access. Do not enter the Azure ARM resource ID or managed
+   identity client ID. If the identity is recreated, resolve its new profile ID
+   with the Azure DevOps Profiles API before adding it to Marketplace.
 5. Add GitHub Actions variables `AZURE_CLIENT_ID` and `AZURE_TENANT_ID` at the
    repository or `marketplace` environment level.
 
