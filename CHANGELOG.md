@@ -7,3 +7,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [Unreleased]
 
 - Initial release
+
+## [0.0.12]
+
+- Configure the fork as `yeceen.har-analyzer`.
+- Update packaging and GitHub Release-based Marketplace publishing.

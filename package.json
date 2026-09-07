@@ -2,13 +2,16 @@
   "name": "har-analyzer",
   "displayName": "HAR Analyzer",
   "description": "Open and analyze HAR files natively",
-  "version": "0.0.11",
-  "publisher": "MattFoulks",
-  "homepage": "https://github.com/mfoulks3200/har-analyzer",
+  "version": "0.0.12",
+  "publisher": "yeceen",
+  "homepage": "https://github.com/ceendev/har-analyzer",
   "license": "GPL-3",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mfoulks3200/har-analyzer"
+    "url": "https://github.com/ceendev/har-analyzer"
+  },
+  "bugs": {
+    "url": "https://github.com/ceendev/har-analyzer/issues"
   },
   "icon": "Icon.png",
   "engines": {
@@ -32,7 +35,9 @@
     ]
   },
   "scripts": {
+    "check": "node --check extension.js && node --check media/script.js",
     "lint": "eslint .",
+    "package": "vsce package --out har-analyzer.vsix",
     "pretest": "npm run lint",
     "test": "node ./test/runTest.js"
   },
@@ -42,6 +47,7 @@
     "@types/node": "14.x",
     "@types/vscode": "^1.67.0",
     "@vscode/test-electron": "^2.1.3",
+    "@vscode/vsce": "3.9.2",
     "eslint": "^8.14.0",
     "glob": "^8.0.1",
     "mocha": "^9.2.2",

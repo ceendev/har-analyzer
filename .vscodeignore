@@ -1,6 +1,9 @@
 .vscode/**
+.github/**
 .vscode-test/**
 test/**
+PUBLISHING.md
+*.vsix
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
