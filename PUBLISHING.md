@@ -91,6 +91,15 @@ from the upstream repository are not inherited by a fork.
    tag, packages the extension, and uploads a VSIX artifact. The publish job
    downloads and publishes that exact artifact to Marketplace.
 
+If a GitHub Release is already published but no `release` workflow run appears,
+retry explicitly from the release tag (the input is required to prevent an
+accidental publish):
+
+```bash
+gh workflow run actions.yml --repo ceendev/har-analyzer --ref v0.0.12 \
+  -f publish=true -f release_tag=v0.0.12
+```
+
 Normal pushes and pull requests build only. GitHub prereleases also build but
 do not publish to Marketplace. An already published version cannot be reused;
 increment the version for the next release. Do not use inherited upstream tags

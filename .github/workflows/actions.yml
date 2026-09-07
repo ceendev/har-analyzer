@@ -8,6 +8,17 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the checked-out version to Marketplace
+        required: true
+        default: false
+        type: boolean
+      release_tag:
+        description: Release tag to validate (for example, v0.0.12)
+        required: true
+        default: v0.0.12
+        type: string
 
 permissions:
   contents: read
@@ -23,7 +34,7 @@ jobs:
           cache: npm
       - name: Validate extension identity and release version
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
         run: |
           node <<'NODE'
           const manifest = require('./package.json');
@@ -44,7 +55,7 @@ jobs:
           if-no-files-found: error
 
   publish:
-    if: github.repository == 'ceendev/har-analyzer' && github.event_name == 'release' && github.event.release.prerelease == false
+    if: github.repository == 'ceendev/har-analyzer' && ((github.event_name == 'release' && github.event.release.prerelease == false) || (github.event_name == 'workflow_dispatch' && inputs.publish == true))
     needs: build
     runs-on: ubuntu-latest
     environment: marketplace
