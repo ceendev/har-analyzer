@@ -107,3 +107,15 @@ that point to commits with the old publisher.
 
 The first successful publication creates the new listing at
 <https://marketplace.visualstudio.com/items?itemName=yeceen.har-analyzer>.
+
+## Name conflict
+
+Marketplace extension names are globally unique. The existing public extension
+`MattFoulks.har-analyzer` already owns the name `har-analyzer`, so a new
+`yeceen.har-analyzer` publication is rejected even though the publisher IDs
+are different. Removing the existing extension would not free the name;
+Marketplace permanently reserves removed names. To keep the exact
+`yeceen.har-analyzer` ID, the current owner must transfer that extension to
+`yeceen` through Marketplace support. Otherwise choose a new `name` in
+`package.json` (for example, `har-analyzer-ceendev`) and update the expected
+extension ID in the workflow.
