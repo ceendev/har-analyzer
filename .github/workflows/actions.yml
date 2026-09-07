@@ -41,7 +41,7 @@ jobs:
           if (`${manifest.publisher}.${manifest.name}` !== 'yeceen.har-analyzer') {
             throw new Error('Expected extension ID yeceen.har-analyzer');
           }
-          if (process.env.GITHUB_EVENT_NAME === 'release' && process.env.RELEASE_TAG !== `v${manifest.version}`) {
+          if (process.env.RELEASE_TAG && process.env.RELEASE_TAG !== `v${manifest.version}`) {
             throw new Error(`Release tag must be v${manifest.version}`);
           }
           NODE
