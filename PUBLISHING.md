@@ -33,9 +33,16 @@ identity setup below also requires an Azure subscription.
    Enable immutable OIDC subjects for this repository and include the `repo`
    and `context` claims. The numeric organization and repository IDs remain
    stable if either is renamed.
-3. In Marketplace, open publisher `yeceen` > **Members**, add the managed
-   identity using its Azure resource ID, and grant it **Contributor** access.
-4. Add GitHub Actions variables `AZURE_CLIENT_ID` and `AZURE_TENANT_ID` at the
+3. Add the managed identity to the Azure DevOps organization that owns the
+   Marketplace publisher. Open **Organization settings > Users**, add
+   `yeceen-har-analyzer-publisher` with **Stakeholder** access, and leave it out
+   of all projects. Azure DevOps must create a profile for the service
+   principal before Marketplace can recognize it.
+4. Run the workflow's manual identity diagnostic once and copy the returned
+   Azure DevOps profile `id` (a GUID). In Marketplace, open publisher `yeceen` >
+   **Members**, enter that profile ID as **User Id**, and grant **Contributor**
+   access. Do not enter the Azure ARM resource ID or managed identity client ID.
+5. Add GitHub Actions variables `AZURE_CLIENT_ID` and `AZURE_TENANT_ID` at the
    repository or `marketplace` environment level.
 
 The publish job requests a GitHub OIDC token, signs in through `azure/login`, and
