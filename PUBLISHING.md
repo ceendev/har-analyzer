@@ -35,7 +35,7 @@ identity setup below also requires an Azure subscription.
    stable if either is renamed.
 3. Add the managed identity to the Azure DevOps organization that owns the
    Marketplace publisher. Open **Organization settings > Users**, add
-   `yeceen-har-auto-analyzer-publisher` with **Stakeholder** access, and leave it out
+   `yeceen-har-analyzer-publisher` with **Stakeholder** access, and leave it out
    of all projects. Azure DevOps must create a profile for the service
    principal before Marketplace can recognize it.
 4. For this setup, the managed identity's Azure DevOps profile ID is
