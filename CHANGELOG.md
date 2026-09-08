@@ -6,6 +6,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.0.16]
+
+- Add a Reqable-style filter toolbar with domain and application selectors.
+- Show the Inspector on demand with a close button and draggable split pane.
+
 ## [0.0.15]
 
 - Open HAR entries that omit `response.content.mimeType` instead of failing during analysis.

@@ -7,39 +7,166 @@ var handledKeystroke = false;
 var keystrokeTimeout = true;
 const vscode = acquireVsCodeApi();
 
-function runSearchCriteria(reqItem, selectorType, selector, attrName, attrVal) {
-    if ($(reqItem).attr(attrName) == attrVal && (!$(selectorType + selector).hasClass("selected") && ($(selectorType).hasClass("selected")))) {
-        $(reqItem).hide();
-        return true;
+function getProtocolGroup(url) {
+    var protocolMatch = /^([a-z][a-z0-9+.-]*):/i.exec(url || "");
+    if (!protocolMatch) {
+        return "other";
     }
-    return false;
+    var protocol = protocolMatch[1].toLowerCase();
+    if (protocol == "ws" || protocol == "wss") {
+        return "websocket";
+    }
+    if (protocol == "http" || protocol == "https") {
+        return protocol;
+    }
+    return "other";
+}
+
+function getHttpVersionGroup(reqItem) {
+    var version = (reqItem && reqItem.request && reqItem.request.httpVersion) || "";
+    if (/^(?:HTTP\/?)?2(?:\.0)?$/i.test(version) || /^h2$/i.test(version)) {
+        return "http2";
+    }
+    if (/^(?:HTTP\/?)?1(?:\.\d+)?$/i.test(version) || /^h1$/i.test(version)) {
+        return "http1";
+    }
+    return "other";
+}
+
+function getMethodGroup(method) {
+    var normalizedMethod = String(method || "").toUpperCase();
+    return normalizedMethod == "GET" || normalizedMethod == "POST" || normalizedMethod == "PUT" ? normalizedMethod : "other";
+}
+
+function getStatusGroup(status) {
+    var statusCode = Number(status);
+    if (!Number.isFinite(statusCode) || statusCode < 100 || statusCode >= 600) {
+        return "other";
+    }
+    return Math.floor(statusCode / 100) + "xx";
+}
+
+function getContentGroup(mimeType) {
+    var normalizedMimeType = String(mimeType || "").toLowerCase().split(";", 1)[0].trim();
+    if (normalizedMimeType.includes("json")) {
+        return "json";
+    }
+    if (normalizedMimeType == "text/html" || normalizedMimeType == "application/xhtml+xml") {
+        return "html";
+    }
+    if (normalizedMimeType.includes("xml")) {
+        return "xml";
+    }
+    if (normalizedMimeType.includes("javascript") || normalizedMimeType.includes("ecmascript")) {
+        return "javascript";
+    }
+    if (normalizedMimeType.startsWith("image/")) {
+        return "image";
+    }
+    if (normalizedMimeType.startsWith("audio/") || normalizedMimeType.startsWith("video/")) {
+        return "media";
+    }
+    if (normalizedMimeType.startsWith("text/")) {
+        return "text";
+    }
+    return "binary";
+}
+
+function getRequestDomain(url) {
+    try {
+        return new URL(url).host;
+    } catch (error) {
+        var endpointMatch = /^[^:]*:\/\/([^/]+)/.exec(url || "");
+        return endpointMatch ? endpointMatch[1] : "";
+    }
+}
+
+function getApplicationInfo(reqItem) {
+    var app = reqItem && reqItem._app;
+    if (!app) {
+        return { key: "__none__", label: "未标注" };
+    }
+    var key = String(app.id || app.name || "__none__");
+    var label = String(app.name || app.id || "未标注");
+    return { key: key, label: label };
+}
+
+function matchesSearchText(value, query, mode) {
+    var normalizedValue = String(value || "").toLowerCase();
+    var normalizedQuery = String(query || "").toLowerCase();
+    if (mode == "startsWith") {
+        return normalizedValue.startsWith(normalizedQuery);
+    }
+    if (mode == "equals") {
+        return normalizedValue == normalizedQuery;
+    }
+    return normalizedValue.includes(normalizedQuery);
+}
+
+function matchesFilterGroups(filterValues, activeFilters) {
+    for (var filterGroup in activeFilters) {
+        if (!activeFilters[filterGroup].includes(filterValues[filterGroup])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function clampInspectorWidth(width, layoutWidth) {
+    return Math.max(280, Math.min(Number(width) || 0, Math.max(280, Number(layoutWidth) - 280)));
 }
 
 function runSearch() {
     while (visibleIndicies.length > 0) {
         visibleIndicies.pop();
     }
+    var selectedDomain = $(".domain-filter").val() || "";
+    var selectedApplication = $(".application-filter").val() || "";
+    var query = $(".search").val() || "";
+    var searchMode = $(".search-mode").val() || "contains";
+    var searchField = $(".search-field").val() || "all";
+    var activeFilters = {};
+    $(".quick-filter.selected").each(function () {
+        var filter = $(this).attr("data-filter");
+        if (filter != "all") {
+            var group = $(this).attr("data-filter-group");
+            if (!activeFilters[group]) {
+                activeFilters[group] = [];
+            }
+            activeFilters[group].push(filter);
+        }
+    });
+
     var i = -1;
-    $(".request-item").each(function () {
+    $(".request-items .request-item").each(function () {
         i++;
-        if (runSearchCriteria(this, ".method-filter", ".get", "type", "GET")) { return; }
-        if (runSearchCriteria(this, ".method-filter", ".post", "type", "POST")) { return; }
-        if (runSearchCriteria(this, ".method-filter", ".put", "type", "PUT")) { return; }
-        if (runSearchCriteria(this, ".method-filter", ".delete", "type", "DELETE")) { return; }
-        if (runSearchCriteria(this, ".method-filter", ".patch", "type", "PATCH")) { return; }
-
-        if (runSearchCriteria(this, ".req-type-filter", ".doc", "reqtype", "document")) { return; }
-        if (runSearchCriteria(this, ".req-type-filter", ".xhr", "reqtype", "xhr")) { return; }
-        if (runSearchCriteria(this, ".req-type-filter", ".ping", "reqtype", "ping")) { return; }
-        if (runSearchCriteria(this, ".req-type-filter", ".img", "reqtype", "image")) { return; }
-        if (runSearchCriteria(this, ".req-type-filter", ".font", "reqtype", "font")) { return; }
-        if (runSearchCriteria(this, ".req-type-filter", ".script", "reqtype", "script")) { return; }
-        if (runSearchCriteria(this, ".req-type-filter", ".stylesheet", "reqtype", "stylesheet")) { return; }
-        if (runSearchCriteria(this, ".req-type-filter", ".man", "reqtype", "manifest")) { return; }
-        if (runSearchCriteria(this, ".req-type-filter", ".pre", "reqtype", "preflight")) { return; }
-        if (runSearchCriteria(this, ".req-type-filter", ".other", "reqtype", "other")) { return; }
-
-        if ($(".search").val().length > 0 && !$(this).attr("endpoint").includes($(".search").val())) {
+        var entity = reqs[i];
+        var filterValues = {
+            protocol: entity.protocolGroup,
+            "http-version": entity.httpVersionGroup,
+            method: entity.methodGroup,
+            content: entity.contentGroup,
+            status: entity.statusGroup
+        };
+        if (selectedDomain && entity.domain != selectedDomain) {
+            $(this).hide();
+            return;
+        }
+        if (selectedApplication && entity.application != selectedApplication) {
+            $(this).hide();
+            return;
+        }
+        if (!matchesFilterGroups(filterValues, activeFilters)) {
+            $(this).hide();
+            return;
+        }
+        var searchValues = {
+            all: [entity.fullURL, entity.method, entity.domain, entity.applicationLabel, entity.status, entity.mimeType, entity.contentShort].join(" "),
+            url: entity.fullURL,
+            request: [entity.method, entity.fullURL, entity.requestText].join(" "),
+            response: [entity.status, entity.mimeType, entity.contentShort, entity.responseText].join(" ")
+        };
+        if (query.length > 0 && !matchesSearchText(searchValues[searchField], query, searchMode)) {
             $(this).hide();
             return;
         }
@@ -67,6 +194,101 @@ function getNextValue(thisIndex, higher) {
 
 let selectedIndex = -1;
 
+function closeInspector() {
+    selectedReq = null;
+    selectedIndex = -1;
+    $(".main-layout").removeClass("has-inspector resizing");
+    $(".request-inspector").removeClass("ready");
+    $(".request-item.selected").removeClass("selected");
+}
+
+function setupInspectorResizer() {
+    var splitter = document.querySelector(".inspector-splitter");
+    if (!splitter || splitter.dataset.bound == "true") {
+        return;
+    }
+    splitter.dataset.bound = "true";
+
+    function updateWidth(layout, width) {
+        var clampedWidth = clampInspectorWidth(width, layout.getBoundingClientRect().width);
+        layout.style.setProperty("--inspector-width", clampedWidth + "px");
+        splitter.setAttribute("aria-valuenow", Math.round(clampedWidth));
+    }
+
+    splitter.addEventListener("pointerdown", function (event) {
+        var layout = document.querySelector(".main-layout");
+        var inspector = document.querySelector(".request-inspector");
+        if (!layout || !inspector) {
+            return;
+        }
+        event.preventDefault();
+        var startX = event.clientX;
+        var startWidth = inspector.getBoundingClientRect().width;
+        layout.classList.add("resizing");
+
+        function handleMove(moveEvent) {
+            updateWidth(layout, startWidth + startX - moveEvent.clientX);
+        }
+
+        function handleUp() {
+            layout.classList.remove("resizing");
+            window.removeEventListener("pointermove", handleMove);
+            window.removeEventListener("pointerup", handleUp);
+        }
+
+        window.addEventListener("pointermove", handleMove);
+        window.addEventListener("pointerup", handleUp);
+    });
+
+    splitter.addEventListener("keydown", function (event) {
+        if (event.key != "ArrowLeft" && event.key != "ArrowRight") {
+            return;
+        }
+        var layout = document.querySelector(".main-layout");
+        var inspector = document.querySelector(".request-inspector");
+        if (!layout || !inspector) {
+            return;
+        }
+        event.preventDefault();
+        var direction = event.key == "ArrowLeft" ? 20 : -20;
+        updateWidth(layout, inspector.getBoundingClientRect().width + direction);
+    });
+}
+
+function populateFilterOptions(entries) {
+    var domains = {};
+    var applications = {};
+    var hasUnlabeledApplication = false;
+    for (var i = 0; i < entries.length; i++) {
+        var entry = entries[i];
+        var domain = getRequestDomain(entry.request && entry.request.url);
+        if (domain) {
+            domains[domain] = true;
+        }
+        var application = getApplicationInfo(entry);
+        if (application.key == "__none__") {
+            hasUnlabeledApplication = true;
+        } else {
+            applications[application.key] = application.label;
+        }
+    }
+
+    var domainSelect = $(".domain-filter").empty().append($("<option>").attr("value", "").text("全部"));
+    Object.keys(domains).sort().forEach(function (domain) {
+        domainSelect.append($("<option>").attr("value", domain).text(domain));
+    });
+
+    var applicationSelect = $(".application-filter").empty().append($("<option>").attr("value", "").text("全部"));
+    Object.keys(applications).sort(function (left, right) {
+        return applications[left].localeCompare(applications[right]);
+    }).forEach(function (key) {
+        applicationSelect.append($("<option>").attr("value", key).text(applications[key]));
+    });
+    if (hasUnlabeledApplication) {
+        applicationSelect.append($("<option>").attr("value", "__none__").text("未标注"));
+    }
+}
+
 function setupGUI() {
     $(".tab-group").html("");
     $(".page:not([disabled])").each(function () {
@@ -82,29 +304,39 @@ function setupGUI() {
         $(".page[name='" + $(this).attr("name") + "']").addClass("show");
     });
 
-    $(".expand-filters").off().on("click", function () {
-        $(this).toggleClass("expanded");
-        $(".req-type-filters").toggleClass("expanded");
-        $(".container.request-items").toggleClass("expanded");
+    $(".quick-filter").off().on("click", function () {
+        var filter = $(this).attr("data-filter");
+        if (filter == "all") {
+            $(".quick-filter").removeClass("selected");
+            $(this).addClass("selected");
+        } else {
+            $(".quick-filter[data-filter='all']").removeClass("selected");
+            $(this).toggleClass("selected");
+            if ($(".quick-filter.selected").length == 0) {
+                $(".quick-filter[data-filter='all']").addClass("selected");
+            }
+        }
         runSearch();
     });
 
-    $(".method-filter,.req-type-filter").off().on("click", function () {
-        $(this).toggleClass("selected");
+    $(".domain-filter,.application-filter,.search-field,.search-mode").off().on("change", runSearch);
+    $(".search").off().on("input", runSearch);
+    $(".clear-search").off().on("click", function () {
+        $(".search").val("");
         runSearch();
+        $(".search").focus();
     });
-
-    $(".search").off().on('input', function (e) {
-        runSearch();
-    });
+    $(".inspector-close").off().on("click", closeInspector);
 
     $(".section-title").off().on("click", function () {
         $(this).parent().toggleClass("hide");
     });
 
-    $(".request-item").off().on("click", function () {
-        selectReq($(this).attr("index"));
+    $(".request-items .request-item").off().on("click", function () {
+        selectReq(Number($(this).attr("index")));
     });
+
+    setupInspectorResizer();
 
     document.addEventListener('keydown', (e) => {
         if (keystrokeTimeout) {
@@ -172,10 +404,13 @@ function setupGUI() {
                 }
             }
         }
-        $(".request-item[index='" + selectedIndex + "']").get(0).scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest'
-        });
+        var selectedItem = $(".request-item[index='" + selectedIndex + "']").get(0);
+        if (selectedItem) {
+            selectedItem.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            });
+        }
     });
 }
 
@@ -197,8 +432,13 @@ function round(num, place) {
 }
 
 function selectReq(index) {
+    if (!reqs[index]) {
+        return;
+    }
     selectedIndex = index;
     selectedReq = reqs[index];
+    $(".main-layout").addClass("has-inspector");
+    $(".request-inspector").addClass("ready");
     $(".request-item.selected").removeClass("selected");
     $(".request-item[index='" + index + "']").addClass("selected");
     $(".inspector-title").attr("type", selectedReq.method);
@@ -421,6 +661,11 @@ function loadHAR(harText) {
         showLoadError(error instanceof SyntaxError ? new Error("The HAR file is not valid JSON.") : error);
         return;
     }
+    reqs.length = 0;
+    visibleIndicies.length = 0;
+    closeInspector();
+    $(".request-items").empty();
+    populateFilterOptions(har.log.entries);
     for (var i = 0; i < har.log.entries.length; i++) {
         addRequestItem(har.log.entries[i]);
     }
@@ -438,10 +683,14 @@ function addRequestItem(reqItem) {
     var endpointRegEx = new RegExp("^[^:]*:\/\/([^/]*)([^?]*)");
     var endpointComponents = endpointRegEx.exec(reqItem.request.url);
     var mimeType = reqItem.response.content.mimeType || "text/plain";
+    var application = getApplicationInfo(reqItem);
+    var domain = endpointComponents ? endpointComponents[1] : getRequestDomain(reqItem.request.url);
+    var endpoint = endpointComponents ? endpointComponents[2] : reqItem.request.url;
+    var requestHeaders = Array.isArray(reqItem.request.headers) ? reqItem.request.headers : [];
     var referer = "";
-    for (var i = 0; i < reqItem.request.headers.length; i++) {
-        if (reqItem.request.headers[i].name == "referer") {
-            referer = reqItem.request.headers[i].value;
+    for (var i = 0; i < requestHeaders.length; i++) {
+        if (String(requestHeaders[i].name || "").toLowerCase() == "referer") {
+            referer = requestHeaders[i].value;
         }
     }
     var content = "";
@@ -464,8 +713,10 @@ function addRequestItem(reqItem) {
         "method": reqItem.request.method,
         "time": reqItem.time,
         "fullURL": reqItem.request.url,
-        "domain": endpointComponents[1],
-        "endpoint": endpointComponents[2],
+        "domain": domain,
+        "endpoint": endpoint,
+        "application": application.key,
+        "applicationLabel": application.label,
         "referer": referer,
         "status": reqItem.response.status + " " + reqItem.response.statusText,
         "index": reqs.length,
@@ -473,6 +724,13 @@ function addRequestItem(reqItem) {
         "contentShort": content.substring(0, 5000),
         "mimeType": mimeType,
         "formatted": formatted,
+        "protocolGroup": getProtocolGroup(reqItem.request.url),
+        "httpVersionGroup": getHttpVersionGroup(reqItem),
+        "methodGroup": getMethodGroup(reqItem.request.method),
+        "contentGroup": getContentGroup(mimeType),
+        "statusGroup": getStatusGroup(reqItem.response.status),
+        "requestText": [reqItem.request.method, reqItem.request.url, JSON.stringify(requestHeaders), JSON.stringify(reqItem.request.postData || {})].join(" "),
+        "responseText": [reqItem.response.statusText, JSON.stringify(reqItem.response.headers || [])].join(" "),
         "obj": reqItem
     };
     reqs.push(item);
@@ -485,6 +743,14 @@ function addRequestGUIItem(entity) {
     newItem.attr("reqType", entity.obj._resourceType);
     newItem.attr("time", entity.obj.time);
     newItem.attr("endpoint", entity.endpoint);
+    newItem.attr("fullURL", entity.fullURL);
+    newItem.attr("domain", entity.domain);
+    newItem.attr("application", entity.application);
+    newItem.attr("protocol", entity.protocolGroup);
+    newItem.attr("http-version", entity.httpVersionGroup);
+    newItem.attr("method-group", entity.methodGroup);
+    newItem.attr("content", entity.contentGroup);
+    newItem.attr("status-group", entity.statusGroup);
     newItem.attr("status", entity.obj.response.status);
     newItem.attr("index", entity.index);
     if (entity.obj.response.status !== 200) {

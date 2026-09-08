@@ -1,32 +1,83 @@
-<div class="request-items container">
-    <div class='codicon codicon-search'></div>
-    <input class="search" placeholder="Search endpoints..." />
-    <div class="method-filters">
-        <div class="method-filter get">GET</div>
-        <div class="method-filter post">POST</div>
-        <div class="method-filter put">PUT</div>
-        <div class="method-filter delete">DELETE</div>
-        <div class="method-filter patch">PATCH</div>
-        <div class="expand-filters">▼</div>
+<div class="toolbar">
+    <div class="quick-filters" role="toolbar" aria-label="快捷过滤">
+        <div class="quick-filter-group">
+            <button class="quick-filter selected" type="button" data-filter-group="all" data-filter="all">All</button>
+        </div>
+        <div class="quick-filter-group" data-filter-group="protocol">
+            <button class="quick-filter" type="button" data-filter="http">Http</button>
+            <button class="quick-filter" type="button" data-filter="https">Https</button>
+            <button class="quick-filter" type="button" data-filter="websocket">WebSocket</button>
+        </div>
+        <div class="quick-filter-group" data-filter-group="http-version">
+            <button class="quick-filter" type="button" data-filter="http1">HTTP1</button>
+            <button class="quick-filter" type="button" data-filter="http2">HTTP2</button>
+        </div>
+        <div class="quick-filter-group" data-filter-group="method">
+            <button class="quick-filter" type="button" data-filter="POST">POST</button>
+            <button class="quick-filter" type="button" data-filter="GET">GET</button>
+            <button class="quick-filter" type="button" data-filter="PUT">PUT</button>
+            <button class="quick-filter" type="button" data-filter="other">XX</button>
+        </div>
+        <div class="quick-filter-group" data-filter-group="content">
+            <button class="quick-filter" type="button" data-filter="json">JSON</button>
+            <button class="quick-filter" type="button" data-filter="xml">XML</button>
+            <button class="quick-filter" type="button" data-filter="text">文本</button>
+            <button class="quick-filter" type="button" data-filter="html">HTML</button>
+            <button class="quick-filter" type="button" data-filter="javascript">JS</button>
+            <button class="quick-filter" type="button" data-filter="image">图片</button>
+            <button class="quick-filter" type="button" data-filter="media">媒体</button>
+            <button class="quick-filter" type="button" data-filter="binary">二进制</button>
+        </div>
+        <div class="quick-filter-group" data-filter-group="status">
+            <button class="quick-filter" type="button" data-filter="1xx">1xx</button>
+            <button class="quick-filter" type="button" data-filter="2xx">2xx</button>
+            <button class="quick-filter" type="button" data-filter="3xx">3xx</button>
+            <button class="quick-filter" type="button" data-filter="4xx">4xx</button>
+            <button class="quick-filter" type="button" data-filter="5xx">5xx</button>
+        </div>
     </div>
-    <div class="req-type-filters">
-        <div class="req-type-filter doc">DOC</div>
-        <div class="req-type-filter xhr">XHR</div>
-        <div class="req-type-filter ping">PING</div>
-        <div class="req-type-filter font">FONT</div>
-        <div class="req-type-filter img">IMG</div>
-        <div class="req-type-filter script">SCRIPT</div>
-        <div class="req-type-filter style">STYLE</div>
-        <!-- <div class="req-type-filter man">MAN</div>
-        <div class="req-type-filter other">OTHER</div>
-        <div class="req-type-filter pre">PRE</div> -->
+    <div class="toolbar-controls">
+        <label class="toolbar-select">
+            <span>域名</span>
+            <select class="domain-filter" aria-label="域名过滤">
+                <option value="">全部</option>
+            </select>
+        </label>
+        <label class="toolbar-select">
+            <span>应用程序</span>
+            <select class="application-filter" aria-label="应用程序过滤">
+                <option value="">全部</option>
+            </select>
+        </label>
+        <select class="search-field" aria-label="搜索范围">
+            <option value="all">全部</option>
+            <option value="url">URL</option>
+            <option value="request">请求</option>
+            <option value="response">响应</option>
+        </select>
+        <select class="search-mode" aria-label="搜索方式">
+            <option value="contains">包含</option>
+            <option value="startsWith">开头</option>
+            <option value="equals">等于</option>
+        </select>
+        <div class="search-box">
+            <div class="codicon codicon-search"></div>
+            <input class="search" placeholder="搜索内容" aria-label="搜索内容" />
+            <button class="clear-search" type="button" aria-label="清除搜索">×</button>
+        </div>
     </div>
 </div>
 
 <div class="item-loader"></div>
 
-<div class="request-inspector container">
-    <div class="inspector-label">Inspector</div>
+<div class="main-layout">
+    <div class="request-items container"></div>
+    <div class="inspector-splitter" role="separator" aria-label="调整列表和 Inspector 宽度" tabindex="0"></div>
+    <div class="request-inspector container">
+    <div class="inspector-bar">
+        <div class="inspector-label">Inspector</div>
+        <button class="inspector-close" type="button" aria-label="关闭 Inspector">×</button>
+    </div>
     <div class="inspector-title" type="POST" endpoint="/example/endpoint" time="902.234514" status="200">
         <div class="title" data="endpoint">/example/endpoint</div>
         <div class="method" data="method">POST</div>
@@ -146,6 +197,7 @@
             </table>
         </div>
     </div>
+</div>
 </div>
 
 <div class="templates">

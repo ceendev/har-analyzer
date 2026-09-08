@@ -2,7 +2,7 @@
   "name": "har-auto-analyzer",
   "displayName": "HAR Auto Analyzer",
   "description": "Open and analyze HAR files natively",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "publisher": "yeceen",
   "homepage": "https://github.com/ceendev/har-auto-analyzer",
   "license": "GPL-3",
@@ -48,7 +48,7 @@
     ]
   },
   "scripts": {
-    "check": "node --check extension.js && node --check media/script.js && node test/custom-editor.test.js && node test/har-entry.test.js",
+    "check": "node --check extension.js && node --check media/script.js && node test/custom-editor.test.js && node test/har-entry.test.js && node test/filter-behavior.test.js",
     "lint": "eslint .",
     "package": "vsce package --out har-auto-analyzer.vsix",
     "pretest": "npm run lint",

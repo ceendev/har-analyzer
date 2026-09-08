@@ -25,8 +25,14 @@ suite('Extension Test Suite', () => {
 			.flatMap(group => group.tabs)
 			.find(isMatchingTab);
 		await vscode.commands.executeCommand('vscode.openWith', harUri, viewType);
-		await new Promise(resolve => setTimeout(resolve, 1000));
-		const tab = findMatchingTab();
+		const deadline = Date.now() + 15000;
+		let tab;
+		while (!tab && Date.now() < deadline) {
+			tab = findMatchingTab();
+			if (!tab) {
+				await new Promise(resolve => setTimeout(resolve, 100));
+			}
+		}
 		assert.ok(tab, 'the HAR custom editor tab should be open');
 		assert.strictEqual(tab.input.viewType, viewType);
 		assert.strictEqual(tab.input.uri.toString(), harUri.toString());
