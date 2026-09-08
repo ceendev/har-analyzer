@@ -91,6 +91,10 @@ from the upstream repository are not inherited by a fork.
    tag, packages the extension, and uploads a VSIX artifact. The publish job
    downloads and publishes that exact artifact to Marketplace.
 
+The workflow also publishes when a `v*` version tag is pushed. This tag trigger
+is a fallback for repositories where GitHub does not deliver the Release event;
+the normal non-prerelease Release flow remains supported.
+
 If a GitHub Release is already published but no `release` workflow run appears,
 retry explicitly from the release tag (the input is required to prevent an
 accidental publish):
