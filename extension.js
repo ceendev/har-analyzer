@@ -16,10 +16,10 @@ function activate(context) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
-	console.log('har-analyzer is now active');
+	console.log('har-auto-analyzer is now active');
 
 	
-	let analyzeCommand = vscode.commands.registerCommand('har-analyzer.analyze', function () {
+	let analyzeCommand = vscode.commands.registerCommand('har-auto-analyzer.analyze', function () {
 		// The code you place here will be executed every time your command is executed
 
 		if(vscode.window.activeTextEditor != null){
@@ -46,7 +46,7 @@ function createWindow(context){
 	console.log(fileName);
 	const panel = vscode.window.createWebviewPanel(
 		'viewerWindow', // Identifies the type of the webview. Used internally
-		'HAR Analyzer: '+fileName, // Title of the panel displayed to the user
+		'HAR Auto Analyzer: '+fileName, // Title of the panel displayed to the user
 		vscode.ViewColumn.One, // Editor column to show the new webview panel in.
 		{ // Enable scripts in the webview
 			enableScripts: true, //Set this to true if you want to enable Javascript. 

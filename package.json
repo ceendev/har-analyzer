@@ -1,17 +1,17 @@
 {
-  "name": "har-analyzer",
-  "displayName": "HAR Analyzer",
+  "name": "har-auto-analyzer",
+  "displayName": "HAR Auto Analyzer",
   "description": "Open and analyze HAR files natively",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "publisher": "yeceen",
-  "homepage": "https://github.com/ceendev/har-analyzer",
+  "homepage": "https://github.com/ceendev/har-auto-analyzer",
   "license": "GPL-3",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ceendev/har-analyzer"
+    "url": "https://github.com/ceendev/har-auto-analyzer"
   },
   "bugs": {
-    "url": "https://github.com/ceendev/har-analyzer/issues"
+    "url": "https://github.com/ceendev/har-auto-analyzer/issues"
   },
   "icon": "Icon.png",
   "engines": {
@@ -22,22 +22,22 @@
     "Visualization"
   ],
   "activationEvents": [
-    "onCommand:har-analyzer.analyze"
+    "onCommand:har-auto-analyzer.analyze"
   ],
   "main": "./extension.js",
   "contributes": {
     "commands": [
       {
         "title": "Analyze",
-        "command": "har-analyzer.analyze",
-        "category": "Har Analyzer"
+        "command": "har-auto-analyzer.analyze",
+        "category": "Har Auto Analyzer"
       }
     ]
   },
   "scripts": {
     "check": "node --check extension.js && node --check media/script.js",
     "lint": "eslint .",
-    "package": "vsce package --out har-analyzer.vsix",
+    "package": "vsce package --out har-auto-analyzer.vsix",
     "pretest": "npm run lint",
     "test": "node ./test/runTest.js"
   },

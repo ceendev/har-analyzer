@@ -1,10 +1,10 @@
-# Publishing HAR Analyzer
+# Publishing HAR Auto Analyzer
 
-The extension identity is `yeceen.har-analyzer`:
+The extension identity is `yeceen.har-auto-analyzer`:
 
 - Marketplace publisher ID: `yeceen`.
-- Extension name: `har-analyzer`.
-- Source repository: <https://github.com/ceendev/har-analyzer>.
+- Extension name: `har-auto-analyzer`.
+- Source repository: <https://github.com/ceendev/har-auto-analyzer>.
 
 The old publishers are unrelated to this extension identity. Removing them is
 not required to publish under `yeceen`.
@@ -13,7 +13,7 @@ not required to publish under `yeceen`.
 
 Enable GitHub Actions for the fork, and create a GitHub environment named
 `marketplace` under **Settings > Environments**. If deployment restrictions are
-configured, allow the version tags used for releases, such as `v0.0.12`.
+configured, allow the version tags used for releases, such as `v0.0.13`.
 
 Configure one of the following authentication methods. Merely signing in to the
 Marketplace in a browser does not authenticate GitHub Actions.
@@ -28,14 +28,14 @@ identity setup below also requires an Azure subscription.
    tenant ID, and Azure resource ID.
 2. Add a federated credential to that identity with these exact values:
    - Issuer: `https://token.actions.githubusercontent.com`
-   - Subject: `repo:ceendev@325867239/har-analyzer@1359690326:environment:marketplace`
+   - Subject: `repo:ceendev@325867239/har-auto-analyzer@1359690326:environment:marketplace`
    - Audience: `api://AzureADTokenExchange`
    Enable immutable OIDC subjects for this repository and include the `repo`
    and `context` claims. The numeric organization and repository IDs remain
    stable if either is renamed.
 3. Add the managed identity to the Azure DevOps organization that owns the
    Marketplace publisher. Open **Organization settings > Users**, add
-   `yeceen-har-analyzer-publisher` with **Stakeholder** access, and leave it out
+   `yeceen-har-auto-analyzer-publisher` with **Stakeholder** access, and leave it out
    of all projects. Azure DevOps must create a profile for the service
    principal before Marketplace can recognize it.
 4. For this setup, the managed identity's Azure DevOps profile ID is
@@ -80,12 +80,12 @@ from the upstream repository are not inherited by a fork.
 1. Update `version` in `package.json` and synchronize `package-lock.json` with
    `npm install --package-lock-only`. Add release notes to `CHANGELOG.md`.
 2. Run `npm ci`, `npm run check`, and `npm run package`. Test the generated
-   `har-analyzer.vsix` in VS Code before publishing. The automated check covers
+   `har-auto-analyzer.vsix` in VS Code before publishing. The automated check covers
    JavaScript syntax and packaging, not full extension behavior.
 3. Commit and push the changes, including this workflow and the lockfile, to
    `ceen` or `main`. Ensure the build succeeds.
 4. Create a GitHub Release whose tag is exactly `v` plus the package version,
-   initially `v0.0.12`, targeting the commit containing the changes. Publish it
+   initially `v0.0.13`, targeting the commit containing the changes. Publish it
    as a regular release, not a draft or prerelease.
 5. Check **Actions > Build and Publish**. The build validates the identity and
    tag, packages the extension, and uploads a VSIX artifact. The publish job
@@ -96,8 +96,8 @@ retry explicitly from the release tag (the input is required to prevent an
 accidental publish):
 
 ```bash
-gh workflow run actions.yml --repo ceendev/har-analyzer --ref v0.0.12 \
-  -f publish=true -f release_tag=v0.0.12
+gh workflow run actions.yml --repo ceendev/har-auto-analyzer --ref v0.0.13 \
+  -f publish=true -f release_tag=v0.0.13
 ```
 
 Normal pushes and pull requests build only. GitHub prereleases also build but
@@ -106,16 +106,10 @@ increment the version for the next release. Do not use inherited upstream tags
 that point to commits with the old publisher.
 
 The first successful publication creates the new listing at
-<https://marketplace.visualstudio.com/items?itemName=yeceen.har-analyzer>.
+<https://marketplace.visualstudio.com/items?itemName=yeceen.har-auto-analyzer>.
 
 ## Name conflict
 
-Marketplace extension names are globally unique. The existing public extension
-`MattFoulks.har-analyzer` already owns the name `har-analyzer`, so a new
-`yeceen.har-analyzer` publication is rejected even though the publisher IDs
-are different. Removing the existing extension would not free the name;
-Marketplace permanently reserves removed names. To keep the exact
-`yeceen.har-analyzer` ID, the current owner must transfer that extension to
-`yeceen` through Marketplace support. Otherwise choose a new `name` in
-`package.json` (for example, `har-analyzer-ceendev`) and update the expected
-extension ID in the workflow.
+Marketplace extension names are globally unique. The old `har-analyzer` name is
+owned by `MattFoulks.har-analyzer`, so this fork uses the available
+`yeceen.har-auto-analyzer` name instead.

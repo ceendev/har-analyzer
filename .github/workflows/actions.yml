@@ -15,9 +15,9 @@ on:
         default: false
         type: boolean
       release_tag:
-        description: Release tag to validate (for example, v0.0.12)
+        description: Release tag to validate (for example, v0.0.13)
         required: true
-        default: v0.0.12
+        default: v0.0.13
         type: string
 
 permissions:
@@ -38,8 +38,8 @@ jobs:
         run: |
           node <<'NODE'
           const manifest = require('./package.json');
-          if (`${manifest.publisher}.${manifest.name}` !== 'yeceen.har-analyzer') {
-            throw new Error('Expected extension ID yeceen.har-analyzer');
+          if (`${manifest.publisher}.${manifest.name}` !== 'yeceen.har-auto-analyzer') {
+            throw new Error('Expected extension ID yeceen.har-auto-analyzer');
           }
           if (process.env.RELEASE_TAG && process.env.RELEASE_TAG !== `v${manifest.version}`) {
             throw new Error(`Release tag must be v${manifest.version}`);
@@ -50,12 +50,12 @@ jobs:
       - run: npm run package
       - uses: actions/upload-artifact@v4
         with:
-          name: har-analyzer-vsix
-          path: har-analyzer.vsix
+          name: har-auto-analyzer-vsix
+          path: har-auto-analyzer.vsix
           if-no-files-found: error
 
   publish:
-    if: github.repository == 'ceendev/har-analyzer' && ((github.event_name == 'release' && github.event.release.prerelease == false) || (github.event_name == 'workflow_dispatch' && inputs.publish == true))
+    if: github.repository == 'ceendev/har-auto-analyzer' && ((github.event_name == 'release' && github.event.release.prerelease == false) || (github.event_name == 'workflow_dispatch' && inputs.publish == true))
     needs: build
     runs-on: ubuntu-latest
     environment: marketplace
@@ -74,7 +74,7 @@ jobs:
       - run: npm ci
       - uses: actions/download-artifact@v4
         with:
-          name: har-analyzer-vsix
+          name: har-auto-analyzer-vsix
       - name: Check publishing credentials
         env:
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
@@ -91,4 +91,4 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           allow-no-subscriptions: true
       - name: Publish using Microsoft Entra ID
-        run: npx --no-install vsce publish --packagePath har-analyzer.vsix --azure-credential
+        run: npx --no-install vsce publish --packagePath har-auto-analyzer.vsix --azure-credential
