@@ -401,19 +401,39 @@ function format(text, mimeType) {
     }
 }
 
-function loadHARByURL(harURL) {
-    $.get(harURL, function (data) {
-        loadHAR(data);
-    });
+async function loadHARByURL(harURL) {
+    try {
+        const response = await fetch(harURL);
+        if (!response.ok) {
+            throw new Error(`Unable to read HAR file (${response.status})`);
+        }
+        loadHAR(await response.text());
+    } catch (error) {
+        showLoadError(error);
+    }
 }
 
 function loadHAR(harText) {
-    har = JSON.parse(harText);
+    try {
+        har = JSON.parse(harText);
+        if (!har.log || !Array.isArray(har.log.entries)) {
+            throw new Error("The HAR file does not contain a valid log.entries array.");
+        }
+    } catch (error) {
+        showLoadError(error instanceof SyntaxError ? new Error("The HAR file is not valid JSON.") : error);
+        return;
+    }
     for (var i = 0; i < har.log.entries.length; i++) {
         addRequestItem(har.log.entries[i]);
     }
     setupGUI();
     $(".item-loader").addClass("hide");
+}
+
+function showLoadError(error) {
+    $(".item-loader").addClass("hide");
+    $(".request-items").empty().append($("<div>").addClass("load-error").text(error.message));
+    console.error(error);
 }
 
 function addRequestItem(reqItem) {
@@ -501,14 +521,18 @@ window.addEventListener('message', event => {
 
     const message = event.data; // The JSON data our extension sent
 
-    console.log("Loading HAR")
-    loadHAR(message.HARText);
+    if (message.command === 'loadError') {
+        showLoadError(new Error(message.message));
+        return;
+    }
 });
 
 $(document).ready(function () {
-    vscode.postMessage({
-        action: "loadHAR"
-    });
+    if (window.harSource) {
+        loadHARByURL(window.harSource);
+    } else {
+        showLoadError(new Error("No HAR file was provided to the analyzer."));
+    }
 });
 
 String.prototype.toHtmlEntities = function () {

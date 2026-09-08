@@ -1,123 +1,108 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+const fs = require('fs');
 const vscode = require('vscode');
 
-var HARpath;
-var docText;
-var slow = false;
+const VIEW_TYPE = 'har-auto-analyzer.editor';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+class HarCustomEditorProvider {
+	constructor(context) {
+		this.context = context;
+	}
+
+	openCustomDocument(uri) {
+		return createHarDocument(uri);
+	}
+
+	async resolveCustomEditor(document, webviewPanel) {
+		const markupPath = vscode.Uri.joinPath(this.context.extensionUri, 'media', 'analyzer.html');
+		const markup = await fs.promises.readFile(markupPath.fsPath, 'utf8');
+		renderHarEditor(webviewPanel, document, {
+			extensionUri: this.context.extensionUri,
+			subscriptions: this.context.subscriptions,
+			markup
+		});
+	}
+}
+
+function createHarDocument(uri) {
+	return {
+		uri,
+		sourceUri: uri,
+		dispose() {}
+	};
+}
 
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
+	const provider = new HarCustomEditorProvider(context);
+	context.subscriptions.push(
+		vscode.window.registerCustomEditorProvider(VIEW_TYPE, provider, {
+			supportsMultipleEditorsPerDocument: false,
+			webviewOptions: {
+				retainContextWhenHidden: true
+			}
+		})
+	);
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('har-auto-analyzer is now active');
-
-	
-	let analyzeCommand = vscode.commands.registerCommand('har-auto-analyzer.analyze', function () {
-		// The code you place here will be executed every time your command is executed
-
-		if(vscode.window.activeTextEditor != null){
-			HARpath = vscode.window.activeTextEditor.document.uri;
-			docText = vscode.window.activeTextEditor.document.getText();
-		}else{
-			slow = true;
-			vscode.window.showErrorMessage('Large File Detected (>5MB), cannot load due to VS Code limitations.');
+	const analyzeCommand = vscode.commands.registerCommand('har-auto-analyzer.analyze', async function () {
+		if (vscode.window.activeTextEditor == null) {
+			vscode.window.showErrorMessage('Open a HAR file before running Analyze.');
 			return;
 		}
 
-		createWindow(context);
+		await vscode.commands.executeCommand(
+			'vscode.openWith',
+			vscode.window.activeTextEditor.document.uri,
+			VIEW_TYPE
+		);
 	});
 
 	context.subscriptions.push(analyzeCommand);
 }
 
-// this method is called when your extension is deactivated
 function deactivate() {}
 
-function createWindow(context){
-	var fileName = vscode.window.activeTextEditor.document.fileName.split(/\/|\\/);
-	fileName = fileName[fileName.length-1];
-	console.log(fileName);
-	const panel = vscode.window.createWebviewPanel(
-		'viewerWindow', // Identifies the type of the webview. Used internally
-		'HAR Auto Analyzer: '+fileName, // Title of the panel displayed to the user
-		vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-		{ // Enable scripts in the webview
-			enableScripts: true, //Set this to true if you want to enable Javascript. 
-			retainContextWhenHidden: true
+function renderHarEditor(panel, document, context) {
+	const cssPath = vscode.Uri.joinPath(context.extensionUri, 'media', 'style.css');
+	const codiconsPath = vscode.Uri.joinPath(context.extensionUri, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css');
+	const jqueryPath = vscode.Uri.joinPath(context.extensionUri, 'media', 'jquery.min.js');
+	const scriptPath = vscode.Uri.joinPath(context.extensionUri, 'media', 'script.js');
+	const harUri = panel.webview.asWebviewUri(document.sourceUri);
+	const resourceRoots = [context.extensionUri, vscode.Uri.joinPath(document.sourceUri, '..')];
+
+	panel.webview.options = {
+		enableScripts: true,
+		localResourceRoots: resourceRoots
+	};
+	panel.webview.html = `<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<link rel="stylesheet" href="${panel.webview.asWebviewUri(cssPath)}">
+			<link href="${panel.webview.asWebviewUri(codiconsPath)}" rel="stylesheet" />
+		</head>
+		<body>
+			<script>window.harSource = ${JSON.stringify(harUri.toString())};</script>
+			<script src="${panel.webview.asWebviewUri(jqueryPath)}"></script>
+			<script src="${panel.webview.asWebviewUri(scriptPath)}"></script>
+			${context.markup}
+		</body>
+		</html>`;
+
+	panel.webview.onDidReceiveMessage(async message => {
+		if (message.action === 'openNewTab') {
+			const document = await vscode.workspace.openTextDocument({ content: message.text });
+			await vscode.window.showTextDocument(document);
 		}
-	);
-	getWebviewContent(panel, context);
+	}, undefined, context.subscriptions);
 }
-
-function getWebviewContent(panel, context) {
-	
-	const cssPath = vscode.Uri.joinPath(context.extensionUri, '/media/style.css');
-	const cssURI = panel.webview.asWebviewUri(cssPath);
-	
-	const codiconsUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'node_modules', '@vscode/codicons', 'dist', 'codicon.css'));
-	
-	const jqPath = vscode.Uri.joinPath(context.extensionUri, '/media/jquery.min.js');
-	const jqUri = panel.webview.asWebviewUri(jqPath);
-	
-	const scriptPath = vscode.Uri.joinPath(context.extensionUri, '/media/script.js');
-	const scriptUri = panel.webview.asWebviewUri(scriptPath);
-	
-	var p = (context.extensionPath+'/media/analyzer.html').replaceAll("\\", "\/").replaceAll("%20", " ");
-	console.log(p);
-	const markupPath = vscode.Uri.joinPath(context.extensionUri, 'media/analyzer.html');
-	
-	const markupUri = panel.webview.asWebviewUri(markupPath);
-
-	const harUri = panel.webview.asWebviewUri(HARpath);
-
-	vscode.workspace.openTextDocument(markupPath).then((document) => {
-		let text = document.getText();
-
-		let slowMethod = slow ? `<script>loadHARByURL(\`${harUri}\`);</script>` : "";
-
-		panel.webview.html = `<!DOCTYPE html>
-				<html lang="en">
-				<head>
-					<meta charset="UTF-8">
-					<meta name="viewport" content="width=device-width, initial-scale=1.0">
-					<link rel="stylesheet" href="${cssURI}">
-					<link href="${codiconsUri}" rel="stylesheet" />
-				</head>
-				<body>
-					<script src="${jqUri}"></script>
-					<script src="${scriptUri}"></script>
-					${text}
-					${slowMethod}
-				</body>
-				</html>`;
-
-		
-		panel.webview.onDidReceiveMessage(
-			message => {
-				if(message.action == "openNewTab"){
-					var doc = vscode.workspace.openTextDocument({
-						content: message.text
-					});
-					vscode.window.showTextDocument(doc);
-				}
-				if(message.action == "loadHAR"){
-					panel.webview.postMessage({ command: 'loadHAR', HARText: docText });
-				}
-			},
-			undefined,
-			context.subscriptions
-			);
-	});
-  }
 
 module.exports = {
 	activate,
-	deactivate
-}
+	deactivate,
+	HarCustomEditorProvider,
+	createHarDocument,
+	renderHarEditor
+};

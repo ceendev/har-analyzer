@@ -6,7 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
-- Rename the extension to `yeceen.har-auto-analyzer` and update its GitHub repository.
+## [0.0.14]
+
+- Open HAR files through a read-only custom editor by default.
+- Load HAR content directly in the WebView without VS Code's text-document size limit.
 
 ## [0.0.13]
 

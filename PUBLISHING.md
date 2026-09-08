@@ -13,7 +13,7 @@ not required to publish under `yeceen`.
 
 Enable GitHub Actions for the fork, and create a GitHub environment named
 `marketplace` under **Settings > Environments**. If deployment restrictions are
-configured, allow the version tags used for releases, such as `v0.0.13`.
+configured, allow the version tags used for releases, such as `v0.0.14`.
 
 Configure one of the following authentication methods. Merely signing in to the
 Marketplace in a browser does not authenticate GitHub Actions.
@@ -85,7 +85,7 @@ from the upstream repository are not inherited by a fork.
 3. Commit and push the changes, including this workflow and the lockfile, to
    `ceen` or `main`. Ensure the build succeeds.
 4. Create a GitHub Release whose tag is exactly `v` plus the package version,
-   initially `v0.0.13`, targeting the commit containing the changes. Publish it
+   initially `v0.0.14`, targeting the commit containing the changes. Publish it
    as a regular release, not a draft or prerelease.
 5. Check **Actions > Build and Publish**. The build validates the identity and
    tag, packages the extension, and uploads a VSIX artifact. The publish job
@@ -100,8 +100,8 @@ retry explicitly from the release tag (the input is required to prevent an
 accidental publish):
 
 ```bash
-gh workflow run actions.yml --repo ceendev/har-auto-analyzer --ref v0.0.13 \
-  -f publish=true -f release_tag=v0.0.13
+gh workflow run actions.yml --repo ceendev/har-auto-analyzer --ref v0.0.14 \
+  -f publish=true -f release_tag=v0.0.14
 ```
 
 Normal pushes and pull requests build only. GitHub prereleases also build but
