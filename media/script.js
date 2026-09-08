@@ -385,8 +385,6 @@ function formatJSON(text) {
     try {
         return JSON.stringify(JSON.parse(text), null, 4);
     } catch (e) {
-        console.log("Could not parse JSON:");
-        console.log(text);
         return text;
     }
 }
@@ -439,6 +437,7 @@ function showLoadError(error) {
 function addRequestItem(reqItem) {
     var endpointRegEx = new RegExp("^[^:]*:\/\/([^/]*)([^?]*)");
     var endpointComponents = endpointRegEx.exec(reqItem.request.url);
+    var mimeType = reqItem.response.content.mimeType || "text/plain";
     var referer = "";
     for (var i = 0; i < reqItem.request.headers.length; i++) {
         if (reqItem.request.headers[i].name == "referer") {
@@ -452,14 +451,14 @@ function addRequestItem(reqItem) {
         if (reqItem.response.content.encoding == "base64") {
             content = atob(reqItem.response.content.text);
         }
-        if (reqItem.response.content.mimeType != "text/plain") {
-            if (reqItem.response.content.mimeType.includes("image/")) {
-                content = "data:" + reqItem.response.content.mimeType.split("/")[1] + ";base64," + reqItem.response.content.text;
+        if (mimeType != "text/plain") {
+            if (mimeType.includes("image/")) {
+                content = "data:" + mimeType.split("/")[1] + ";base64," + reqItem.response.content.text;
             } else {
                 formatted = true;
             }
         }
-        content = format(content, reqItem.response.content.mimeType);
+        content = format(content, mimeType);
     }
     var item = {
         "method": reqItem.request.method,
@@ -472,7 +471,7 @@ function addRequestItem(reqItem) {
         "index": reqs.length,
         "content": content,
         "contentShort": content.substring(0, 5000),
-        "mimeType": reqItem.response.content.mimeType,
+        "mimeType": mimeType,
         "formatted": formatted,
         "obj": reqItem
     };

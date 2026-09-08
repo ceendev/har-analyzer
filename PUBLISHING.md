@@ -100,8 +100,8 @@ retry explicitly from the release tag (the input is required to prevent an
 accidental publish):
 
 ```bash
-gh workflow run actions.yml --repo ceendev/har-auto-analyzer --ref v0.0.14 \
-  -f publish=true -f release_tag=v0.0.14
+gh workflow run actions.yml --repo ceendev/har-auto-analyzer --ref v0.0.15 \
+  -f publish=true -f release_tag=v0.0.15
 ```
 
 Normal pushes and pull requests build only. GitHub prereleases also build but

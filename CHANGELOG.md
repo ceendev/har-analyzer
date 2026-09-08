@@ -6,6 +6,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.0.15]
+
+- Open HAR entries that omit `response.content.mimeType` instead of failing during analysis.
+- Avoid logging complete response bodies when a response marked as JSON contains invalid JSON.
+
 ## [0.0.14]
 
 - Open HAR files through a read-only custom editor by default.
