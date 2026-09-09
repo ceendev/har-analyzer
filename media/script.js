@@ -524,10 +524,6 @@ function setupGUI() {
     });
     $(".inspector-close").off().on("click", closeInspector);
 
-    $(".section-title").off().on("click", function () {
-        $(this).parent().toggleClass("hide");
-    });
-
     $(".request-items .request-item").off().on("click", function () {
         selectReq(Number($(this).attr("index")));
     });

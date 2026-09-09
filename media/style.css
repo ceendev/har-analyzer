@@ -656,56 +656,15 @@ table.stack {
     left: auto;
 }
 
-.section {
+.inspector-section {
     margin-bottom: 10px;
 }
 
-.section .section-title {
+.inspector-section-title {
     font-size: 1.5em;
     margin-bottom: 10px;
     user-select: none;
-    cursor: pointer;
     width: fit-content;
-    padding: 5px;
-    padding-right: 10px;
-    margin-left: -33px;
-    border-radius: 5px;
-    transition: margin-left ease 0.2s;
-}
-
-.section.hide .section-title {
-    margin-left: -10px;
-    margin-bottom: 0px;
-    transition: margin-left ease 0.2s;
-}
-
-.section .section-title:hover {
-    margin-left: 0;
-    background: var(--vscode-list-hoverBackground);
-    transition: margin-left ease 0.2s, background ease 0.2s;
-}
-
-.section .section-title::before {
-    content: "▼";
-    font-size: 0.8em;
-    padding-left: 7px;
-    box-sizing: border-box;
-    opacity: 0;
-    width: 28px;
-    display: inline-block;
-    transform: rotate(0deg);
-    transition: opacity ease 0.2s, transform ease 0.2s;
-}
-
-.section.hide .section-title::before {
-    opacity: 0.5;
-    transform: rotate(-90deg);
-    transition: opacity ease 0.2s, transform ease 0.2s;
-}
-
-.section .section-title:hover::before {
-    opacity: 0.5;
-    transition: opacity ease 0.2s, transform ease 0.2s;
 }
 
 .code-block {
@@ -771,12 +730,6 @@ table.stack {
 
 .page.show {
     position: unset;
-}
-
-.section.hide *:not(.section-title) {
-    position: absolute;
-    top: -9999999px;
-    left: -9999999px;
 }
 
 .data-row {

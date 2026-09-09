@@ -110,8 +110,8 @@
                 <div class="tab-group"></div>
                 <div class="inspector-panel-content">
                     <div class="page" name="总览">
-                        <div class="section">
-                            <div class="section-title">请求信息</div>
+                        <div class="inspector-section">
+                            <div class="inspector-section-title">请求信息</div>
                             <div class="data-row" data="fullURL" keyName="请求 URL">https://example.com/example/endpoint</div>
                             <div class="data-row" data="obj.request.method" keyName="方法">POST</div>
                             <div class="data-row" data="httpVersion" keyName="协议">HTTP/1.1</div>
@@ -125,8 +125,8 @@
                             <div class="data-row" data="obj.request.headers.length" keyName="请求头数量"></div>
                             <div class="data-row" data="obj.response.content.size" keyName="响应大小"></div>
                         </div>
-                        <div class="section">
-                            <div class="section-title">时间明细</div>
+                        <div class="inspector-section">
+                            <div class="inspector-section-title">时间明细</div>
                             <div class="inspector-timing-container">
                                 <div class="inspector-timing-labels">
                                     <div class="data-row" data="obj.timings._blocked_queueing" round="3" keyName="排队"></div>
@@ -153,37 +153,37 @@
                         </div>
                     </div>
                     <div class="page" name="原始">
-                        <div class="section">
-                            <div class="section-title">原始请求</div>
+                        <div class="inspector-section">
+                            <div class="inspector-section-title">原始请求</div>
                             <div class="raw-view-tabs"><button class="raw-view-tab selected" type="button" data-raw-mode="text">Text</button><button class="raw-view-tab" type="button" data-raw-mode="hex">Hex</button></div>
                             <pre class="code-block raw-code" data-raw-source="request" data-raw-mode="text"></pre>
                         </div>
                     </div>
                     <div class="page" name="请求头">
-                        <div class="section">
-                            <div class="section-title">请求头列表</div>
+                        <div class="inspector-section">
+                            <div class="inspector-section-title">请求头列表</div>
                             <div data-table="obj.request.headers"></div>
                         </div>
                     </div>
                     <div class="page" name="参数">
-                        <div class="section" require-data="obj.request.queryString">
-                            <div class="section-title">查询参数</div>
+                        <div class="inspector-section" require-data="obj.request.queryString">
+                            <div class="inspector-section-title">查询参数</div>
                             <div data-table="obj.request.queryString"></div>
                         </div>
-                        <div class="section" require-data="obj.request.postData.params">
-                            <div class="section-title">请求参数</div>
+                        <div class="inspector-section" require-data="obj.request.postData.params">
+                            <div class="inspector-section-title">请求参数</div>
                             <div data-table="obj.request.postData.params"></div>
                         </div>
                     </div>
                     <div class="page" name="请求体">
-                        <div class="section" require-data="obj.request.postData.text">
-                            <div class="section-title">请求体内容</div>
+                        <div class="inspector-section" require-data="obj.request.postData.text">
+                            <div class="inspector-section-title">请求体内容</div>
                             <div class="code-block" data="obj.request.postData.text"></div>
                         </div>
                     </div>
                     <div class="page" name="Cookies">
-                        <div class="section" require-data="obj.request.cookies">
-                            <div class="section-title">Cookies</div>
+                        <div class="inspector-section" require-data="obj.request.cookies">
+                            <div class="inspector-section-title">Cookies</div>
                             <div data-table="obj.request.cookies"></div>
                         </div>
                     </div>
@@ -207,21 +207,21 @@
                 <div class="tab-group"></div>
                 <div class="inspector-panel-content">
                     <div class="page" name="原始">
-                        <div class="section">
-                            <div class="section-title">原始响应</div>
+                        <div class="inspector-section">
+                            <div class="inspector-section-title">原始响应</div>
                             <div class="raw-view-tabs"><button class="raw-view-tab selected" type="button" data-raw-mode="text">Text</button><button class="raw-view-tab" type="button" data-raw-mode="hex">Hex</button></div>
                             <pre class="code-block raw-code" data-raw-source="response" data-raw-mode="text"></pre>
                         </div>
                     </div>
                     <div class="page" name="响应头">
-                        <div class="section">
-                            <div class="section-title">响应头列表</div>
+                        <div class="inspector-section">
+                            <div class="inspector-section-title">响应头列表</div>
                             <div data-table="obj.response.headers"></div>
                         </div>
                     </div>
                     <div class="page" name="响应体">
-                        <div class="section" require-data="content">
-                            <div class="section-title">响应内容</div>
+                        <div class="inspector-section" require-data="content">
+                            <div class="inspector-section-title">响应内容</div>
                             <div class="data-row" keyName="内容类型" data="mimeType"></div>
                             <div class="data-row" keyName="内容大小" require-data="obj.response.content.size" data="obj.response.content.size"></div>
                             <div class="code-block shorten" require-value="mimeType=text/*|application/*"></div>
@@ -230,8 +230,8 @@
                         </div>
                     </div>
                     <div class="page" name="Cookies">
-                        <div class="section" require-data="obj.response.cookies">
-                            <div class="section-title">Cookies</div>
+                        <div class="inspector-section" require-data="obj.response.cookies">
+                            <div class="inspector-section-title">Cookies</div>
                             <div data-table="obj.response.cookies"></div>
                         </div>
                     </div>
