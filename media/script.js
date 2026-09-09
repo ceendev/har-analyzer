@@ -1,6 +1,7 @@
 var har;
 var reqs = [];
 var selectedReq;
+var selectedIndex = -1;
 var visibleIndicies = [];
 
 var handledKeystroke = false;
@@ -117,6 +118,133 @@ function clampInspectorWidth(width, layoutWidth) {
     return Math.max(280, Math.min(Number(width) || 0, Math.max(280, Number(layoutWidth) - 280)));
 }
 
+function getDisplayRequestId(entity) {
+    return String((Number(entity && entity.index) || 0) + 1);
+}
+
+function toggleInspectorPanelState(state, panelName) {
+    var requestExpanded = state.requestExpanded !== false;
+    var responseExpanded = state.responseExpanded !== false;
+    if (panelName == "request") {
+        requestExpanded = !requestExpanded;
+    } else if (panelName == "response") {
+        responseExpanded = !responseExpanded;
+    }
+    if (!requestExpanded && !responseExpanded) {
+        if (panelName == "request") {
+            responseExpanded = true;
+        } else {
+            requestExpanded = true;
+        }
+    }
+    return { requestExpanded: requestExpanded, responseExpanded: responseExpanded };
+}
+
+var inspectorPanelState = { requestExpanded: true, responseExpanded: true };
+
+function applyInspectorPanelState() {
+    var requestExpanded = inspectorPanelState.requestExpanded;
+    var responseExpanded = inspectorPanelState.responseExpanded;
+    $(".inspector-panel").each(function () {
+        var panelName = $(this).attr("data-panel");
+        var expanded = panelName == "request" ? requestExpanded : responseExpanded;
+        var otherExpanded = panelName == "request" ? responseExpanded : requestExpanded;
+        $(this).toggleClass("collapsed", !expanded);
+        if (!expanded) {
+            this.style.flex = "0 0 34px";
+        } else if (!otherExpanded) {
+            this.style.flex = "1 1 auto";
+        } else {
+            this.style.flex = "";
+        }
+        $(this).find(".inspector-panel-toggle").attr("aria-expanded", String(expanded));
+    });
+}
+
+function toggleInspectorPanel(panelName) {
+    inspectorPanelState = toggleInspectorPanelState(inspectorPanelState, panelName);
+    applyInspectorPanelState();
+}
+
+function getRawRequestTarget(url) {
+    try {
+        var parsedURL = new URL(url);
+        return (parsedURL.pathname || "/") + (parsedURL.search || "");
+    } catch (error) {
+        return url || "/";
+    }
+}
+
+function formatRawRequest(reqItem) {
+    var request = reqItem && reqItem.request || {};
+    var method = request.method || "GET";
+    var version = request.httpVersion || "HTTP/1.1";
+    var lines = [method + " " + getRawRequestTarget(request.url) + " " + version];
+    var headers = Array.isArray(request.headers) ? request.headers : [];
+    for (var i = 0; i < headers.length; i++) {
+        lines.push(String(headers[i].name || "") + ": " + String(headers[i].value || ""));
+    }
+    var body = request.postData && request.postData.text || "";
+    return lines.join("\n") + "\n\n" + body;
+}
+
+function formatRawResponse(reqItem, content) {
+    var response = reqItem && reqItem.response || {};
+    var request = reqItem && reqItem.request || {};
+    var version = request.httpVersion || "HTTP/1.1";
+    var status = response.status == null ? "" : response.status;
+    var statusText = response.statusText || "";
+    var lines = [version + " " + status + " " + statusText].filter(function (line) { return line.trim().length > 0; });
+    var headers = Array.isArray(response.headers) ? response.headers : [];
+    for (var i = 0; i < headers.length; i++) {
+        lines.push(String(headers[i].name || "") + ": " + String(headers[i].value || ""));
+    }
+    return lines.join("\n") + "\n\n" + (content || "");
+}
+
+function formatHex(text) {
+    var bytes = [];
+    var source = String(text || "");
+    for (var i = 0; i < source.length; i++) {
+        var code = source.charCodeAt(i);
+        if (code < 128) {
+            bytes.push(code);
+        } else {
+            var encoded = unescape(encodeURIComponent(source.charAt(i)));
+            for (var byteIndex = 0; byteIndex < encoded.length; byteIndex++) {
+                bytes.push(encoded.charCodeAt(byteIndex));
+            }
+        }
+    }
+    var lines = [];
+    for (var offset = 0; offset < bytes.length; offset += 16) {
+        var lineBytes = bytes.slice(offset, offset + 16);
+        lines.push(offset.toString(16).toUpperCase().padStart(4, "0") + "  " + lineBytes.map(function (byte) {
+            return byte.toString(16).toUpperCase().padStart(2, "0");
+        }).join(" "));
+    }
+    return lines.join("\n");
+}
+
+function renderRawViews() {
+    $(".raw-view-tab").off().on("click", function () {
+        var panel = $(this).closest(".inspector-panel");
+        panel.find(".raw-view-tab").removeClass("selected");
+        $(this).addClass("selected");
+        panel.find(".raw-code").attr("data-raw-mode", $(this).attr("data-raw-mode"));
+        renderRawViews();
+    });
+    if (!selectedReq) {
+        return;
+    }
+    $(".raw-code").each(function () {
+        var source = $(this).attr("data-raw-source");
+        var raw = source == "request" ? selectedReq.rawRequest : selectedReq.rawResponse;
+        var mode = $(this).attr("data-raw-mode") || "text";
+        $(this).html((mode == "hex" ? formatHex(raw) : raw).toString().toHtmlEntities());
+    });
+}
+
 function runSearch() {
     while (visibleIndicies.length > 0) {
         visibleIndicies.pop();
@@ -193,14 +321,14 @@ function getNextValue(thisIndex, higher) {
     return -1;
 }
 
-let selectedIndex = -1;
-
 function closeInspector() {
     selectedReq = null;
     selectedIndex = -1;
+    inspectorPanelState = { requestExpanded: true, responseExpanded: true };
     $(".main-layout").removeClass("has-inspector resizing");
     $(".request-inspector").removeClass("ready");
     $(".request-item.selected").removeClass("selected");
+    applyInspectorPanelState();
 }
 
 function setupInspectorResizer() {
@@ -254,6 +382,61 @@ function setupInspectorResizer() {
         var direction = event.key == "ArrowLeft" ? 20 : -20;
         updateWidth(layout, inspector.getBoundingClientRect().width + direction);
     });
+
+    var horizontalSplitter = document.querySelector(".inspector-horizontal-splitter");
+    if (!horizontalSplitter || horizontalSplitter.dataset.bound == "true") {
+        return;
+    }
+    horizontalSplitter.dataset.bound = "true";
+
+    horizontalSplitter.addEventListener("pointerdown", function (event) {
+        var panels = document.querySelector(".inspector-panels");
+        var requestPanel = document.querySelector(".request-panel");
+        var responsePanel = document.querySelector(".response-panel");
+        if (!panels || !requestPanel || !responsePanel || requestPanel.classList.contains("collapsed") || responsePanel.classList.contains("collapsed")) {
+            return;
+        }
+        event.preventDefault();
+        var startY = event.clientY;
+        var startRequestHeight = requestPanel.getBoundingClientRect().height;
+
+        function updatePanelHeights(moveEvent) {
+            var availableHeight = panels.getBoundingClientRect().height - horizontalSplitter.getBoundingClientRect().height;
+            var nextRequestHeight = Math.max(62, Math.min(startRequestHeight + moveEvent.clientY - startY, Math.max(62, availableHeight - 62)));
+            requestPanel.style.flex = "0 0 " + nextRequestHeight + "px";
+            responsePanel.style.flex = "1 1 auto";
+        }
+
+        function handleMove(moveEvent) {
+            updatePanelHeights(moveEvent);
+        }
+
+        function handleUp() {
+            window.removeEventListener("pointermove", handleMove);
+            window.removeEventListener("pointerup", handleUp);
+        }
+
+        window.addEventListener("pointermove", handleMove);
+        window.addEventListener("pointerup", handleUp);
+    });
+
+    horizontalSplitter.addEventListener("keydown", function (event) {
+        if (event.key != "ArrowUp" && event.key != "ArrowDown") {
+            return;
+        }
+        var panels = document.querySelector(".inspector-panels");
+        var requestPanel = document.querySelector(".request-panel");
+        var responsePanel = document.querySelector(".response-panel");
+        if (!panels || !requestPanel || !responsePanel || requestPanel.classList.contains("collapsed") || responsePanel.classList.contains("collapsed")) {
+            return;
+        }
+        event.preventDefault();
+        var delta = event.key == "ArrowUp" ? -20 : 20;
+        var nextRequestHeight = requestPanel.getBoundingClientRect().height + delta;
+        var availableHeight = panels.getBoundingClientRect().height - horizontalSplitter.getBoundingClientRect().height;
+        requestPanel.style.flex = "0 0 " + Math.max(62, Math.min(nextRequestHeight, Math.max(62, availableHeight - 62))) + "px";
+        responsePanel.style.flex = "1 1 auto";
+    });
 }
 
 function populateFilterOptions(entries) {
@@ -291,19 +474,31 @@ function populateFilterOptions(entries) {
 }
 
 function setupGUI() {
-    $(".tab-group").html("");
-    $(".page:not([disabled])").each(function () {
-        $(".tab-group").append("<div class='tab' name='" + $(this).attr("name") + "'>" + $(this).attr("name") + "</div>"); //this
+    $(".inspector-panel").each(function () {
+        var panel = $(this);
+        var tabGroup = panel.find(".tab-group");
+        tabGroup.html("");
+        panel.find(".page:not([disabled])").each(function () {
+            tabGroup.append("<div class='tab' name='" + $(this).attr("name") + "'>" + $(this).attr("name") + "</div>");
+        });
+        tabGroup.find(".tab").first().addClass("selected");
+        panel.find(".page").first().addClass("show");
     });
-    $(".tab").first().addClass("selected");
-    $(".page").first().addClass("show");
 
     $(".tab").off().on("click", function () {
-        $(".tab").removeClass("selected");
+        var panel = $(this).closest(".inspector-panel");
+        panel.find(".tab").removeClass("selected");
         $(this).addClass("selected");
-        $(".page").removeClass("show");
-        $(".page[name='" + $(this).attr("name") + "']").addClass("show");
+        panel.find(".page").removeClass("show");
+        panel.find(".page[name='" + $(this).attr("name") + "']").addClass("show");
     });
+
+    $(".inspector-panel-toggle").off().on("click", function () {
+        toggleInspectorPanel($(this).closest(".inspector-panel").attr("data-panel"));
+    });
+
+    applyInspectorPanelState();
+    renderRawViews();
 
     $(".quick-filter").off().on("click", function () {
         var filter = $(this).attr("data-filter");
@@ -442,15 +637,15 @@ function selectReq(index) {
     $(".request-inspector").addClass("ready");
     $(".request-item.selected").removeClass("selected");
     $(".request-item[index='" + index + "']").addClass("selected");
-    $(".inspector-title").attr("type", selectedReq.method);
-    $(".inspector-title").attr("endpoint", selectedReq.endpoint);
-    $(".inspector-title").attr("time", selectedReq.time);
-    $(".inspector-title").attr("status", selectedReq.status);
+    $(".inspector-method-badge").attr("type", selectedReq.method);
+    $(".inspector-panel-url").attr("title", selectedReq.fullURL);
     $("*[data]:not([round])").each(function () {
-        $(this).html(getNested($(this).attr("data")).toString().toHtmlEntities());
+        var value = getNested($(this).attr("data"));
+        $(this).text(value == null ? "" : String(value));
     });
+    renderRawViews();
     $("*[data][round]").each(function () {
-        $(this).html(round(getNested($(this).attr("data")), $(this).attr("round")));
+        $(this).text(round(getNested($(this).attr("data")), $(this).attr("round")));
     });
     $(".inspector-timing-bars").attr("totalTime", 0);
     $(".inspector-timing-bars .data-bar").each(function () {
@@ -477,7 +672,7 @@ function selectReq(index) {
         for (var tableIndex in table) {
             var tableItem = table[tableIndex];
             if (!(tableItem === undefined) && !(tableItem.value === undefined)) {
-                $(this).append(`<div class="data-row" keyName="` + tableItem.name.toString().toHtmlEntities() + `">` + tableItem.value.toString().toHtmlEntities() + `</div>`);
+                $(this).append(`<div class="data-row"><div class="data-key">` + tableItem.name.toString().toHtmlEntities() + `</div><div class="data-value">` + tableItem.value.toString().toHtmlEntities() + `</div></div>`);
             }
         }
     });
@@ -718,6 +913,7 @@ function addRequestItem(reqItem) {
         "endpoint": endpoint,
         "application": application.key,
         "applicationLabel": application.label,
+        "httpVersion": reqItem.request.httpVersion || "HTTP/1.1",
         "referer": referer,
         "status": reqItem.response.status + " " + reqItem.response.statusText,
         "index": reqs.length,
@@ -732,6 +928,8 @@ function addRequestItem(reqItem) {
         "statusGroup": getStatusGroup(reqItem.response.status),
         "requestText": [reqItem.request.method, reqItem.request.url, JSON.stringify(requestHeaders), JSON.stringify(reqItem.request.postData || {})].join(" "),
         "responseText": [reqItem.response.statusText, JSON.stringify(reqItem.response.headers || [])].join(" "),
+        "rawRequest": formatRawRequest(reqItem),
+        "rawResponse": formatRawResponse(reqItem, content),
         "obj": reqItem
     };
     reqs.push(item);
@@ -764,6 +962,8 @@ function addRequestGUIItem(entity) {
     newItem.attr("index", entity.index);
     newItem.find(".time").text(Math.round(entity.obj.time) + "ms");
     newItem.find(".status").attr("status", entity.obj.response.status);
+    newItem.find(".request-id").text(getDisplayRequestId(entity));
+    newItem.find(".application").text(entity.applicationLabel).attr("title", entity.applicationLabel);
     if (entity.method.length > 4) {
         switch (entity.method) {
             case "DELETE":
@@ -779,7 +979,7 @@ function addRequestGUIItem(entity) {
     } else {
         newItem.find(".method").text(entity.method);
     }
-    newItem.find(".endpoint").text(entity.endpoint);
+    newItem.find(".request-url").text(entity.fullURL).attr("title", entity.fullURL);
     newItem.appendTo(".request-items");
 }
 

@@ -6,6 +6,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.0.19]
+
+- Add request sequence, application, full URL, duration, and status columns to the request list.
+- Rework the Inspector into collapsible request and response panels with Reqable-style tabs and raw Text/Hex views.
+
 ## [0.0.18]
 
 - Add individual quick filters for standard HTTP methods and replace the placeholder method label.

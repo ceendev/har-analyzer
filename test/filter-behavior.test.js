@@ -38,6 +38,7 @@ const context = {
 	document: {},
 	fetch() { throw new Error('fetch should not run in this unit test'); },
 	window: { addEventListener() {} },
+	URL,
 	$: createJQueryStub(),
 	setTimeout
 };
@@ -85,8 +86,36 @@ assert.strictEqual(context.matchesFilterGroups({ protocol: 'https', content: 'xm
 assert.strictEqual(context.clampInspectorWidth(100, 1200), 280);
 assert.strictEqual(context.clampInspectorWidth(700, 1200), 700);
 assert.strictEqual(context.clampInspectorWidth(1100, 1200), 920);
+assert.strictEqual(context.getDisplayRequestId({ index: 0 }), '1');
+assert.strictEqual(context.getDisplayRequestId({ index: 41 }), '42');
+assert.match(context.formatRawRequest({ request: { method: 'GET', url: 'https://example.test/path?a=1', httpVersion: 'HTTP/2', headers: [{ name: 'Host', value: 'example.test' }] } }), /^GET \/path\?a=1 HTTP\/2/m);
+assert.match(context.formatRawResponse({ request: { httpVersion: 'HTTP/2' }, response: { status: 200, statusText: 'OK', headers: [] } }, 'body'), /^HTTP\/2 200 OK/m);
+assert.ok(context.formatHex('AB').includes('41 42'));
+let panelState = context.toggleInspectorPanelState({ requestExpanded: true, responseExpanded: true }, 'request');
+assert.strictEqual(panelState.requestExpanded, false);
+assert.strictEqual(panelState.responseExpanded, true);
+panelState = context.toggleInspectorPanelState(panelState, 'response');
+assert.strictEqual(panelState.requestExpanded, true);
+assert.strictEqual(panelState.responseExpanded, false);
+panelState = context.toggleInspectorPanelState(panelState, 'response');
+assert.strictEqual(panelState.requestExpanded, true);
+assert.strictEqual(panelState.responseExpanded, true);
 
 assert.ok(markup.indexOf('class="toolbar-controls"') < markup.indexOf('class="quick-filters"'));
+assert.ok(markup.includes('class="request-list-header"'));
+assert.ok(markup.includes('>ID</div>'));
+assert.ok(markup.includes('>应用程序</div>'));
+assert.ok(markup.includes('class="request-id"'));
+assert.ok(markup.includes('class="application"'));
+assert.ok(markup.includes('class="request-url"'));
+assert.ok(markup.includes('data-panel="request"'));
+assert.ok(markup.includes('data-panel="response"'));
+assert.ok(markup.includes('class="inspector-horizontal-splitter"'));
+assert.ok(markup.includes('class="raw-view-tab selected"'));
+assert.ok(markup.includes('data-raw-mode="hex"'));
+assert.ok(markup.includes('name="请求头"'));
+assert.ok(markup.includes('name="响应头"'));
+assert.ok(markup.includes('name="原始"'));
 assert.ok(markup.includes('data-filter="DELETE">DELETE</button>'));
 assert.ok(markup.includes('data-filter="PATCH">PATCH</button>'));
 assert.ok(markup.includes('data-filter="HEAD">HEAD</button>'));

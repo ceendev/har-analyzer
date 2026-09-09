@@ -77,139 +77,176 @@
 <div class="item-loader"></div>
 
 <div class="main-layout">
-    <div class="request-items container"></div>
+    <div class="request-list-pane">
+        <div class="request-list-header" role="row">
+            <div role="columnheader">ID</div>
+            <div role="columnheader">应用程序</div>
+            <div role="columnheader">方法</div>
+            <div role="columnheader">URL</div>
+            <div role="columnheader">耗时</div>
+            <div role="columnheader">状态</div>
+        </div>
+        <div class="request-items container"></div>
+    </div>
     <div class="inspector-splitter" role="separator" aria-label="调整列表和 Inspector 宽度" tabindex="0"></div>
     <div class="request-inspector container">
-    <div class="inspector-bar">
-        <div class="inspector-label">Inspector</div>
-        <button class="inspector-close" type="button" aria-label="关闭 Inspector">×</button>
-    </div>
-    <div class="inspector-title" type="POST" endpoint="/example/endpoint" time="902.234514" status="200">
-        <div class="title" data="endpoint">/example/endpoint</div>
-        <div class="method" data="method">POST</div>
-        <div class="fullURL" data="fullURL">https://example.com/example/endpoint</div>
-        <div class="tab-group">
-            <div class="tab">Example Tab</div>
-            <div class="tab selected">Example Tab</div>
-            <div class="tab">Example Tab</div>
-            <div class="tab">Example Tab</div>
+        <div class="inspector-bar">
+            <div class="inspector-label">Inspector</div>
+            <button class="inspector-close" type="button" aria-label="关闭 Inspector">×</button>
         </div>
-    </div>
-
-    <div class="page" name="General">
-        <div class="section">
-            <div class="section-title">Basic Info</div>
-            <div class="data-row" data="fullURL" keyName="Request URL">https://example.com/example/endpoint</div>
-            <div class="data-row" data="referer" keyName="Referrer">https://google.com</div>
-            <div class="data-row" data="obj.serverIPAddress" keyName="Remote Address">127.0.0.1</div>
-            <div class="data-row" data="obj._resourceType" keyName="Resource Type">document</div>
-            <br />
-            <div class="data-row" data="obj.startedDateTime" keyName="Timestamp">May 25th 2022, 23:34:14.312 GMT-4</div>
-            <div class="data-row" data="obj.time" keyName="Duration">2m 34s 103ms</div>
-            <br />
-            <div class="data-row" data="obj.response.status" keyName="Status"></div>
-            <div class="data-row" data="obj.response.statusText" keyName="Status Message"></div>
-            <div class="data-row" data="obj.request.method" keyName="Method"></div>
-        </div>
-    </div>
-
-    <div class="page" name="Request">
-        <div class="section" require-data="obj.request.queryString">
-            <div class="section-title">Parameters</div>
-            <div data-table="obj.request.queryString"></div>
-        </div>
-        <div class="section" require-data="obj.request.postData.text">
-            <div class="section-title">Payload Text</div>
-            <div class="code-block" data="obj.request.postData.text"></div>
-        </div>
-        <div class="section" require-data="obj.request.postData.params">
-            <div class="section-title">Payload Parameters</div>
-            <div data-table="obj.request.postData.params"></div>
-        </div>
-        <div class="section">
-            <div class="section-title">Headers</div>
-            <div data-table="obj.request.headers"></div>
-        </div>
-        <div class="section" require-data="obj.request.cookies">
-            <div class="section-title">Cookies</div>
-            <div data-table="obj.request.cookies"></div>
-        </div>
-    </div>
-
-    <div class="page" name="Response">
-        <div class="section" require-data="content">
-            <div class="section-title">Content</div>
-            <div class="data-row" keyName="Mime Type" data="mimeType"></div>
-            <div class="data-row" style="padding-bottom:10px;" keyName="Content Size"
-                require-data="obj.response.content.size" data="obj.response.content.size"></div>
-            <div class="code-block shorten" require-value="mimeType=text/*|application/*"></div>
-            <div class="subscript open-new-tab" require-value="mimeType=text/*|application/*">(double click to open in a
-                new tab)</div>
-            <img class="img-preview" data-to="src=content" require-value="mimeType=image/*" />
-        </div>
-        <div class="section" require-data="obj.response.headers">
-            <div class="section-title">Headers</div>
-            <div data-table="obj.response.headers"></div>
-        </div>
-        <div class="section" require-data="obj.response.cookies">
-            <div class="section-title">Cookies</div>
-            <div data-table="obj.response.cookies"></div>
-        </div>
-    </div>
-
-    <div class="page" name="Timing">
-        <div class="section">
-            <div class="section-title">Timings</div>
-            <div class="inspector-timing-container">
-                <div class="inspector-timing-labels">
-                    <div class="data-row" data="obj.timings._blocked_queueing" round="3" keyName="Queuing"></div>
-                    <div class="data-row" data="obj.timings.blocked" round="3" keyName="Blocked"></div>
-                    <div class="data-row" data="obj.timings.connect" round="3" keyName="Connect"></div>
-                    <div class="data-row" data="obj.timings.dns" round="3" keyName="DNS"></div>
-                    <div class="data-row" data="obj.timings.receive" round="3" keyName="Recieve"></div>
-                    <div class="data-row" data="obj.timings.send" round="3" keyName="Send"></div>
-                    <div class="data-row" data="obj.timings.ssl" round="3" keyName="SSL"></div>
-                    <div class="data-row" data="obj.timings.wait" round="3" keyName="Wait"></div>
-                    <div class="data-row" keyName="Total" round="3" data="obj.time"></div>
+        <div class="inspector-panels">
+            <section class="inspector-panel request-panel" data-panel="request">
+                <div class="inspector-panel-header">
+                    <div class="inspector-panel-name">请求</div>
+                    <div class="inspector-panel-meta">
+                        <span class="inspector-method-badge" type="POST" data="method">POST</span>
+                        <span class="inspector-protocol-badge" data="httpVersion">HTTP/1.1</span>
+                    </div>
+                    <button class="inspector-panel-toggle" type="button" aria-label="收缩请求面板" aria-expanded="true">
+                        <span class="codicon codicon-chevron-up"></span>
+                    </button>
                 </div>
-                <div class="inspector-timing-bars" totalTime="0">
-                    <div class="data-bar" data="obj.timings._blocked_queueing" keyName="Queuing"></div>
-                    <div class="data-bar" data="obj.timings.blocked" keyName="Blocked"></div>
-                    <div class="data-bar" data="obj.timings.connect" keyName="Connect"></div>
-                    <div class="data-bar" data="obj.timings.dns" keyName="DNS"></div>
-                    <div class="data-bar" data="obj.timings.receive" keyName="Recieve"></div>
-                    <div class="data-bar" data="obj.timings.send" keyName="Send"></div>
-                    <div class="data-bar" data="obj.timings.ssl" keyName="SSL"></div>
-                    <div class="data-bar" data="obj.timings.wait" keyName="Wait"></div>
+                <div class="inspector-panel-url" data="fullURL" title="https://example.com/example/endpoint">https://example.com/example/endpoint</div>
+                <div class="tab-group"></div>
+                <div class="inspector-panel-content">
+                    <div class="page" name="总览">
+                        <div class="section">
+                            <div class="section-title">请求信息</div>
+                            <div class="data-row" data="fullURL" keyName="请求 URL">https://example.com/example/endpoint</div>
+                            <div class="data-row" data="obj.request.method" keyName="方法">POST</div>
+                            <div class="data-row" data="httpVersion" keyName="协议">HTTP/1.1</div>
+                            <div class="data-row" data="applicationLabel" keyName="应用程序">未标注</div>
+                            <div class="data-row" data="obj._serverAddress" keyName="服务器地址"></div>
+                            <div class="data-row" data="obj._serverPort" keyName="服务器端口"></div>
+                            <div class="data-row" data="obj.startedDateTime" keyName="开始时间"></div>
+                            <div class="data-row" data="obj.time" keyName="总耗时"></div>
+                            <div class="data-row" data="obj.response.status" keyName="状态码"></div>
+                            <div class="data-row" data="obj.response.statusText" keyName="状态文本"></div>
+                            <div class="data-row" data="obj.request.headers.length" keyName="请求头数量"></div>
+                            <div class="data-row" data="obj.response.content.size" keyName="响应大小"></div>
+                        </div>
+                        <div class="section">
+                            <div class="section-title">时间明细</div>
+                            <div class="inspector-timing-container">
+                                <div class="inspector-timing-labels">
+                                    <div class="data-row" data="obj.timings._blocked_queueing" round="3" keyName="排队"></div>
+                                    <div class="data-row" data="obj.timings.blocked" round="3" keyName="阻塞"></div>
+                                    <div class="data-row" data="obj.timings.connect" round="3" keyName="连接"></div>
+                                    <div class="data-row" data="obj.timings.dns" round="3" keyName="DNS"></div>
+                                    <div class="data-row" data="obj.timings.receive" round="3" keyName="接收"></div>
+                                    <div class="data-row" data="obj.timings.send" round="3" keyName="发送"></div>
+                                    <div class="data-row" data="obj.timings.ssl" round="3" keyName="SSL"></div>
+                                    <div class="data-row" data="obj.timings.wait" round="3" keyName="等待"></div>
+                                    <div class="data-row" keyName="总计" round="3" data="obj.time"></div>
+                                </div>
+                                <div class="inspector-timing-bars" totalTime="0">
+                                    <div class="data-bar" data="obj.timings._blocked_queueing" keyName="排队"></div>
+                                    <div class="data-bar" data="obj.timings.blocked" keyName="阻塞"></div>
+                                    <div class="data-bar" data="obj.timings.connect" keyName="连接"></div>
+                                    <div class="data-bar" data="obj.timings.dns" keyName="DNS"></div>
+                                    <div class="data-bar" data="obj.timings.receive" keyName="接收"></div>
+                                    <div class="data-bar" data="obj.timings.send" keyName="发送"></div>
+                                    <div class="data-bar" data="obj.timings.ssl" keyName="SSL"></div>
+                                    <div class="data-bar" data="obj.timings.wait" keyName="等待"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="page" name="原始">
+                        <div class="section">
+                            <div class="section-title">原始请求</div>
+                            <div class="raw-view-tabs"><button class="raw-view-tab selected" type="button" data-raw-mode="text">Text</button><button class="raw-view-tab" type="button" data-raw-mode="hex">Hex</button></div>
+                            <pre class="code-block raw-code" data-raw-source="request" data-raw-mode="text"></pre>
+                        </div>
+                    </div>
+                    <div class="page" name="请求头">
+                        <div class="section">
+                            <div class="section-title">请求头列表</div>
+                            <div data-table="obj.request.headers"></div>
+                        </div>
+                    </div>
+                    <div class="page" name="参数">
+                        <div class="section" require-data="obj.request.queryString">
+                            <div class="section-title">查询参数</div>
+                            <div data-table="obj.request.queryString"></div>
+                        </div>
+                        <div class="section" require-data="obj.request.postData.params">
+                            <div class="section-title">请求参数</div>
+                            <div data-table="obj.request.postData.params"></div>
+                        </div>
+                    </div>
+                    <div class="page" name="请求体">
+                        <div class="section" require-data="obj.request.postData.text">
+                            <div class="section-title">请求体内容</div>
+                            <div class="code-block" data="obj.request.postData.text"></div>
+                        </div>
+                    </div>
+                    <div class="page" name="Cookies">
+                        <div class="section" require-data="obj.request.cookies">
+                            <div class="section-title">Cookies</div>
+                            <div data-table="obj.request.cookies"></div>
+                        </div>
+                    </div>
+                    <div class="page" name="备注">
+                        <div class="inspector-empty">暂无备注</div>
+                    </div>
                 </div>
-            </div>
+            </section>
+            <div class="inspector-horizontal-splitter" role="separator" aria-label="调整请求和响应面板高度" tabindex="0"></div>
+            <section class="inspector-panel response-panel" data-panel="response">
+                <div class="inspector-panel-header">
+                    <div class="inspector-panel-name">响应</div>
+                    <div class="inspector-panel-meta">
+                        <span class="inspector-protocol-badge" data="httpVersion">HTTP/1.1</span>
+                        <span class="inspector-status-badge" data="obj.response.status">200</span>
+                    </div>
+                    <button class="inspector-panel-toggle" type="button" aria-label="收缩响应面板" aria-expanded="true">
+                        <span class="codicon codicon-chevron-up"></span>
+                    </button>
+                </div>
+                <div class="tab-group"></div>
+                <div class="inspector-panel-content">
+                    <div class="page" name="原始">
+                        <div class="section">
+                            <div class="section-title">原始响应</div>
+                            <div class="raw-view-tabs"><button class="raw-view-tab selected" type="button" data-raw-mode="text">Text</button><button class="raw-view-tab" type="button" data-raw-mode="hex">Hex</button></div>
+                            <pre class="code-block raw-code" data-raw-source="response" data-raw-mode="text"></pre>
+                        </div>
+                    </div>
+                    <div class="page" name="响应头">
+                        <div class="section">
+                            <div class="section-title">响应头列表</div>
+                            <div data-table="obj.response.headers"></div>
+                        </div>
+                    </div>
+                    <div class="page" name="响应体">
+                        <div class="section" require-data="content">
+                            <div class="section-title">响应内容</div>
+                            <div class="data-row" keyName="内容类型" data="mimeType"></div>
+                            <div class="data-row" keyName="内容大小" require-data="obj.response.content.size" data="obj.response.content.size"></div>
+                            <div class="code-block shorten" require-value="mimeType=text/*|application/*"></div>
+                            <div class="subscript open-new-tab" require-value="mimeType=text/*|application/*">双击在新标签页打开</div>
+                            <img class="img-preview" data-to="src=content" require-value="mimeType=image/*" />
+                        </div>
+                    </div>
+                    <div class="page" name="Cookies">
+                        <div class="section" require-data="obj.response.cookies">
+                            <div class="section-title">Cookies</div>
+                            <div data-table="obj.response.cookies"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
-
-    <div class="page" name="Initiation">
-        <div class="section">
-            <div class="section-title">Initiation</div>
-            <div class="data-row" data="obj._initiator.type" keyName="Type"></div>
-            <div class="data-row" data="obj._initiator.url" require-data="obj._initiator.url" keyName="URL"></div>
-        </div>
-
-        <div class="section" require-data="obj._initiator.stack.callFrames">
-            <div class="section-title">Stack</div>
-            <table class="stack">
-                <tr>
-                    <td>function()</td>
-                    <td>desktop_polymer.js (3701:334)</td>
-                </tr>
-            </table>
-        </div>
-    </div>
-</div>
 </div>
 
 <div class="templates">
     <div class="request-item" type="POST" endpoint="/example/endpoint" time="902.234514" status="200">
+        <div class="request-id">1</div>
+        <div class="application">未标注</div>
         <div class="method">POST</div>
-        <div class="endpoint">/example/endpoint</div>
+        <div class="request-url" title="https://example.com/example/endpoint">https://example.com/example/endpoint</div>
         <div class="time detail-item">902ms</div>
         <div class="status detail-item"></div>
     </div>
