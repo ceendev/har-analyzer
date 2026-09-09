@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.0.18]
+
+- Add individual quick filters for standard HTTP methods and replace the placeholder method label.
+
 ## [0.0.17]
 
 - Move the domain, application, and search controls above the quick filters.

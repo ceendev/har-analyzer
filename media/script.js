@@ -35,7 +35,8 @@ function getHttpVersionGroup(reqItem) {
 
 function getMethodGroup(method) {
     var normalizedMethod = String(method || "").toUpperCase();
-    return normalizedMethod == "GET" || normalizedMethod == "POST" || normalizedMethod == "PUT" ? normalizedMethod : "other";
+    var standardMethods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "CONNECT", "TRACE"];
+    return standardMethods.includes(normalizedMethod) ? normalizedMethod : "other";
 }
 
 function getStatusGroup(status) {
