@@ -6,6 +6,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.0.17]
+
+- Move the domain, application, and search controls above the quick filters.
+- Fix the search box border so it renders as one continuous control.
+
 ## [0.0.16]
 
 - Add a Reqable-style filter toolbar with domain and application selectors.

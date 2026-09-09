@@ -85,7 +85,7 @@ from the upstream repository are not inherited by a fork.
 3. Commit and push the changes, including this workflow and the lockfile, to
    `ceen` or `main`. Ensure the build succeeds.
 4. Create a GitHub Release whose tag is exactly `v` plus the package version,
-   initially `v0.0.16`, targeting the commit containing the changes. Publish it
+   initially `v0.0.17`, targeting the commit containing the changes. Publish it
    as a regular release, not a draft or prerelease.
 5. Check **Actions > Build and Publish**. The build validates the identity and
    tag, packages the extension, and uploads a VSIX artifact. The publish job
@@ -100,8 +100,8 @@ retry explicitly from the release tag (the input is required to prevent an
 accidental publish):
 
 ```bash
-gh workflow run actions.yml --repo ceendev/har-auto-analyzer --ref v0.0.16 \
-  -f publish=true -f release_tag=v0.0.16
+gh workflow run actions.yml --repo ceendev/har-auto-analyzer --ref v0.0.17 \
+  -f publish=true -f release_tag=v0.0.17
 ```
 
 Normal pushes and pull requests build only. GitHub prereleases also build but

@@ -2,7 +2,7 @@
   "name": "har-auto-analyzer",
   "displayName": "HAR Auto Analyzer",
   "description": "Open and analyze HAR files natively",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "publisher": "yeceen",
   "homepage": "https://github.com/ceendev/har-auto-analyzer",
   "license": "GPL-3",

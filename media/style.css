@@ -28,6 +28,8 @@ body {
     box-sizing: border-box;
     background: var(--vscode-editor-background);
     border-bottom: 1px solid var(--vscode-editorGroup-border);
+    display: flex;
+    flex-direction: column;
 }
 
 .quick-filters {
@@ -101,8 +103,7 @@ body {
 }
 
 .toolbar select,
-.search-box,
-.search-box input {
+.search-box {
     height: 34px;
     box-sizing: border-box;
     border: 1px solid var(--vscode-input-border, var(--vscode-editorGroup-border));
@@ -138,6 +139,7 @@ body {
     flex: 1 1 280px;
     min-width: 160px;
     padding-left: 10px;
+    overflow: hidden;
 }
 
 .search-box .codicon-search {
@@ -148,7 +150,12 @@ body {
 .search-box input.search {
     flex: 1 1 auto;
     min-width: 0;
+    width: 100%;
+    height: 100%;
     border: 0;
+    color: var(--vscode-input-foreground, var(--vscode-editor-foreground));
+    background: transparent;
+    font: inherit;
     outline: 0;
     padding: 0 8px;
 }

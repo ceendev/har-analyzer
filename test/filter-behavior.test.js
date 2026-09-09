@@ -4,6 +4,8 @@ const path = require('path');
 const vm = require('vm');
 
 const script = fs.readFileSync(path.resolve(__dirname, '..', 'media/script.js'), 'utf8');
+const markup = fs.readFileSync(path.resolve(__dirname, '..', 'media/analyzer.html'), 'utf8');
+const styles = fs.readFileSync(path.resolve(__dirname, '..', 'media/style.css'), 'utf8');
 
 function createJQueryStub() {
 	const chain = {
@@ -75,3 +77,7 @@ assert.strictEqual(context.matchesFilterGroups({ protocol: 'https', content: 'xm
 assert.strictEqual(context.clampInspectorWidth(100, 1200), 280);
 assert.strictEqual(context.clampInspectorWidth(700, 1200), 700);
 assert.strictEqual(context.clampInspectorWidth(1100, 1200), 920);
+
+assert.ok(markup.indexOf('class="toolbar-controls"') < markup.indexOf('class="quick-filters"'));
+assert.match(styles, /\.search-box\s*\{[\s\S]*?overflow:\s*hidden;/);
+assert.match(styles, /\.search-box input\.search\s*\{[\s\S]*?background:\s*transparent;/);

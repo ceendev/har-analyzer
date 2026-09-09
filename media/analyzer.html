@@ -1,4 +1,34 @@
 <div class="toolbar">
+    <div class="toolbar-controls">
+        <label class="toolbar-select">
+            <span>域名</span>
+            <select class="domain-filter" aria-label="域名过滤">
+                <option value="">全部</option>
+            </select>
+        </label>
+        <label class="toolbar-select">
+            <span>应用程序</span>
+            <select class="application-filter" aria-label="应用程序过滤">
+                <option value="">全部</option>
+            </select>
+        </label>
+        <select class="search-field" aria-label="搜索范围">
+            <option value="all">全部</option>
+            <option value="url">URL</option>
+            <option value="request">请求</option>
+            <option value="response">响应</option>
+        </select>
+        <select class="search-mode" aria-label="搜索方式">
+            <option value="contains">包含</option>
+            <option value="startsWith">开头</option>
+            <option value="equals">等于</option>
+        </select>
+        <div class="search-box">
+            <div class="codicon codicon-search"></div>
+            <input class="search" placeholder="搜索内容" aria-label="搜索内容" />
+            <button class="clear-search" type="button" aria-label="清除搜索">×</button>
+        </div>
+    </div>
     <div class="quick-filters" role="toolbar" aria-label="快捷过滤">
         <div class="quick-filter-group">
             <button class="quick-filter selected" type="button" data-filter-group="all" data-filter="all">All</button>
@@ -34,36 +64,6 @@
             <button class="quick-filter" type="button" data-filter="3xx">3xx</button>
             <button class="quick-filter" type="button" data-filter="4xx">4xx</button>
             <button class="quick-filter" type="button" data-filter="5xx">5xx</button>
-        </div>
-    </div>
-    <div class="toolbar-controls">
-        <label class="toolbar-select">
-            <span>域名</span>
-            <select class="domain-filter" aria-label="域名过滤">
-                <option value="">全部</option>
-            </select>
-        </label>
-        <label class="toolbar-select">
-            <span>应用程序</span>
-            <select class="application-filter" aria-label="应用程序过滤">
-                <option value="">全部</option>
-            </select>
-        </label>
-        <select class="search-field" aria-label="搜索范围">
-            <option value="all">全部</option>
-            <option value="url">URL</option>
-            <option value="request">请求</option>
-            <option value="response">响应</option>
-        </select>
-        <select class="search-mode" aria-label="搜索方式">
-            <option value="contains">包含</option>
-            <option value="startsWith">开头</option>
-            <option value="equals">等于</option>
-        </select>
-        <div class="search-box">
-            <div class="codicon codicon-search"></div>
-            <input class="search" placeholder="搜索内容" aria-label="搜索内容" />
-            <button class="clear-search" type="button" aria-label="清除搜索">×</button>
         </div>
     </div>
 </div>

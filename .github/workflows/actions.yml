@@ -16,9 +16,9 @@ on:
         default: false
         type: boolean
       release_tag:
-        description: Release tag to validate (for example, v0.0.16)
+        description: Release tag to validate (for example, v0.0.17)
         required: true
-        default: v0.0.16
+        default: v0.0.17
         type: string
 
 permissions:
