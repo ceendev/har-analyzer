@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.0.20]
+
+- Remove collapsible sections from request and response inspector tabs while preserving the main panel controls.
+
 ## [0.0.19]
 
 - Add request sequence, application, full URL, duration, and status columns to the request list.
