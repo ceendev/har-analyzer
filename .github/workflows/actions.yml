@@ -115,7 +115,8 @@ jobs:
                 256 // PublishedExtensionFlags.Public
               );
             } catch (error) {
-              const isUnchangedResponse = error?.message?.includes(
+              const errorMessage = String(error?.message || error);
+              const isUnchangedResponse = errorMessage.includes(
                 "Cannot read properties of null (reading 'flags')"
               );
               if (!isUnchangedResponse) {
