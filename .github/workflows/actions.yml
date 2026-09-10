@@ -92,4 +92,29 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           allow-no-subscriptions: true
       - name: Publish using Microsoft Entra ID
+        id: publish
+        continue-on-error: true
         run: npx --no-install vsce publish --packagePath har-auto-analyzer.vsix --azure-credential
+      - name: Update an existing hidden Marketplace entry
+        if: steps.publish.outcome == 'failure'
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const { getAzureCredentialAccessToken } = require('./node_modules/@vscode/vsce/out/auth');
+          const { getGalleryAPI } = require('./node_modules/@vscode/vsce/out/util');
+
+          (async () => {
+            const token = await getAzureCredentialAccessToken();
+            const api = await getGalleryAPI(token);
+            await api.updateExtension(
+              undefined,
+              fs.createReadStream('har-auto-analyzer.vsix'),
+              'yeceen',
+              'har-auto-analyzer'
+            );
+            console.log('Updated existing Marketplace entry yeceen.har-auto-analyzer.');
+          })().catch(error => {
+            console.error(error?.message || error);
+            process.exitCode = 1;
+          });
+          NODE
