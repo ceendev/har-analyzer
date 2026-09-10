@@ -118,6 +118,21 @@ function clampInspectorWidth(width, layoutWidth) {
     return Math.max(280, Math.min(Number(width) || 0, Math.max(280, Number(layoutWidth) - 280)));
 }
 
+function resizeAdjacentColumns(widths, columnIndex, delta, minimumWidths) {
+    var resizedWidths = widths.slice();
+    var leftMinimum = minimumWidths[columnIndex] || 40;
+    var rightMinimum = minimumWidths[columnIndex + 1] || 40;
+    var availableWidth = resizedWidths[columnIndex] + resizedWidths[columnIndex + 1];
+    var nextLeftWidth = Math.max(leftMinimum, Math.min(resizedWidths[columnIndex] + delta, availableWidth - rightMinimum));
+    resizedWidths[columnIndex] = nextLeftWidth;
+    resizedWidths[columnIndex + 1] = availableWidth - nextLeftWidth;
+    return resizedWidths;
+}
+
+function clampInspectorTableKeyWidth(width, tableWidth) {
+    return Math.max(80, Math.min(Number(width) || 0, Math.max(80, Number(tableWidth) - 100)));
+}
+
 function getDisplayRequestId(entity) {
     return String((Number(entity && entity.index) || 0) + 1);
 }
@@ -439,6 +454,126 @@ function setupInspectorResizer() {
     });
 }
 
+function setupRequestColumnResizers() {
+    var header = document.querySelector(".request-list-header");
+    var layout = document.querySelector(".main-layout");
+    if (!header || !layout) {
+        return;
+    }
+    var minimumWidths = [42, 90, 60, 160, 60, 54];
+
+    function getColumnWidths() {
+        return Array.from(header.children).map(function (cell) {
+            return cell.getBoundingClientRect().width;
+        });
+    }
+
+    function applyColumnWidths(widths) {
+        var roundedWidths = widths.map(function (width) {
+            return Math.round(width * 10) / 10;
+        });
+        layout.style.setProperty("--request-grid-columns", roundedWidths.map(function (width) {
+            return width + "px";
+        }).join(" "));
+        layout.style.setProperty("--request-grid-min-width", roundedWidths.reduce(function (total, width) {
+            return total + width;
+        }, 0) + "px");
+    }
+
+    document.querySelectorAll(".request-column-resizer").forEach(function (resizer) {
+        if (resizer.dataset.bound == "true") {
+            return;
+        }
+        resizer.dataset.bound = "true";
+        var columnIndex = Number(resizer.dataset.columnIndex);
+
+        resizer.addEventListener("pointerdown", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var startX = event.clientX;
+            var startWidths = getColumnWidths();
+            document.body.classList.add("resizing-columns");
+
+            function handleMove(moveEvent) {
+                applyColumnWidths(resizeAdjacentColumns(startWidths, columnIndex, moveEvent.clientX - startX, minimumWidths));
+            }
+
+            function handleUp() {
+                document.body.classList.remove("resizing-columns");
+                window.removeEventListener("pointermove", handleMove);
+                window.removeEventListener("pointerup", handleUp);
+            }
+
+            window.addEventListener("pointermove", handleMove);
+            window.addEventListener("pointerup", handleUp);
+        });
+
+        resizer.addEventListener("keydown", function (event) {
+            if (event.key != "ArrowLeft" && event.key != "ArrowRight") {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            applyColumnWidths(resizeAdjacentColumns(getColumnWidths(), columnIndex, event.key == "ArrowLeft" ? -12 : 12, minimumWidths));
+        });
+    });
+}
+
+function setupDataTableColumnResizers() {
+    var inspector = document.querySelector(".request-inspector");
+    if (!inspector) {
+        return;
+    }
+    document.querySelectorAll("[data-table]").forEach(function (table) {
+        var resizer = document.createElement("div");
+        resizer.className = "data-table-column-resizer";
+        resizer.setAttribute("role", "separator");
+        resizer.setAttribute("aria-label", "调整 Inspector 表格列宽");
+        resizer.setAttribute("aria-orientation", "vertical");
+        resizer.setAttribute("tabindex", "0");
+        table.appendChild(resizer);
+
+        function applyKeyWidth(width) {
+            var nextWidth = clampInspectorTableKeyWidth(width, table.getBoundingClientRect().width);
+            inspector.style.setProperty("--inspector-key-width", nextWidth + "px");
+            resizer.setAttribute("aria-valuenow", Math.round(nextWidth));
+        }
+
+        resizer.addEventListener("pointerdown", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var tableRect = table.getBoundingClientRect();
+            var startX = event.clientX;
+            var startWidth = resizer.getBoundingClientRect().left - tableRect.left;
+            document.body.classList.add("resizing-columns");
+
+            function handleMove(moveEvent) {
+                applyKeyWidth(startWidth + moveEvent.clientX - startX);
+            }
+
+            function handleUp() {
+                document.body.classList.remove("resizing-columns");
+                window.removeEventListener("pointermove", handleMove);
+                window.removeEventListener("pointerup", handleUp);
+            }
+
+            window.addEventListener("pointermove", handleMove);
+            window.addEventListener("pointerup", handleUp);
+        });
+
+        resizer.addEventListener("keydown", function (event) {
+            if (event.key != "ArrowLeft" && event.key != "ArrowRight") {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            var tableRect = table.getBoundingClientRect();
+            var currentWidth = resizer.getBoundingClientRect().left - tableRect.left;
+            applyKeyWidth(currentWidth + (event.key == "ArrowLeft" ? -12 : 12));
+        });
+    });
+}
+
 function populateFilterOptions(entries) {
     var domains = {};
     var applications = {};
@@ -529,6 +664,7 @@ function setupGUI() {
     });
 
     setupInspectorResizer();
+    setupRequestColumnResizers();
 
     document.addEventListener('keydown', (e) => {
         if (keystrokeTimeout) {
@@ -672,6 +808,7 @@ function selectReq(index) {
             }
         }
     });
+    setupDataTableColumnResizers();
     $("*[require-data]").each(function () {
         var table = getNested($(this).attr("require-data"));
         if (table.length == 0) {

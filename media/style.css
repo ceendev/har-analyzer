@@ -3,6 +3,7 @@
     --inspector-width: 42%;
     --splitter-width: 6px;
     --request-grid-columns: 56px 150px 78px minmax(160px, 1fr) 72px 58px;
+    --request-grid-min-width: 560px;
 }
 
 body {
@@ -209,7 +210,7 @@ body {
     display: grid;
     grid-template-columns: var(--request-grid-columns);
     flex: 0 0 36px;
-    min-width: 560px;
+    min-width: var(--request-grid-min-width);
     position: sticky;
     top: 0;
     z-index: 1;
@@ -222,12 +223,30 @@ body {
 }
 
 .request-list-header > div {
+    position: relative;
     height: 100%;
     display: flex;
     align-items: center;
     padding: 0 8px;
     box-sizing: border-box;
     border-right: 1px solid var(--vscode-editorGroup-border);
+}
+
+.request-column-resizer {
+    position: absolute;
+    top: 0;
+    right: -4px;
+    bottom: 0;
+    width: 8px;
+    cursor: col-resize;
+    touch-action: none;
+    z-index: 3;
+}
+
+.request-column-resizer:hover,
+.request-column-resizer:focus-visible {
+    background: var(--vscode-focusBorder);
+    outline: 0;
 }
 
 .request-list-header > div:last-child {
@@ -238,7 +257,7 @@ body {
     position: relative;
     flex: 1 1 auto;
     width: 100%;
-    min-width: 560px;
+    min-width: var(--request-grid-min-width);
     padding: 0;
     min-height: calc(100% - 36px);
     overflow: visible;
@@ -272,6 +291,7 @@ body {
     padding: 0;
     overflow: hidden;
     flex-direction: column;
+    --inspector-key-width: 38%;
 }
 
 .main-layout.has-inspector .container.request-inspector {
@@ -523,7 +543,7 @@ body {
     grid-template-columns: var(--request-grid-columns);
     align-items: center;
     width: 100%;
-    min-width: 560px;
+    min-width: var(--request-grid-min-width);
     height: 35px;
     padding: 0;
     box-sizing: border-box;
@@ -660,13 +680,6 @@ table.stack {
     margin-bottom: 10px;
 }
 
-.inspector-section-title {
-    font-size: 1.5em;
-    margin-bottom: 10px;
-    user-select: none;
-    width: fit-content;
-}
-
 .code-block {
     font-family: monospace;
     padding: 10px;
@@ -750,17 +763,42 @@ table.stack {
 }
 
 [data-table] {
+    position: relative;
     overflow: hidden;
     border: 1px solid var(--vscode-editorGroup-border);
 }
 
 [data-table] .data-row {
     display: grid;
-    grid-template-columns: minmax(120px, 38%) minmax(0, 1fr);
+    grid-template-columns: minmax(80px, var(--inspector-key-width)) minmax(100px, 1fr);
     min-height: 34px;
     margin: 0;
     padding: 0;
     border-bottom: 1px solid var(--vscode-editorGroup-border);
+}
+
+.data-table-column-resizer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: max(80px, var(--inspector-key-width));
+    width: 8px;
+    margin-left: -4px;
+    cursor: col-resize;
+    touch-action: none;
+    z-index: 2;
+}
+
+.data-table-column-resizer:hover,
+.data-table-column-resizer:focus-visible {
+    background: var(--vscode-focusBorder);
+    outline: 0;
+}
+
+body.resizing-columns,
+body.resizing-columns * {
+    cursor: col-resize !important;
+    user-select: none !important;
 }
 
 [data-table] .data-row:last-child {
