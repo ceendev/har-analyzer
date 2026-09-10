@@ -100,30 +100,45 @@ jobs:
         run: |
           node <<'NODE'
           const fs = require('fs');
+          const manifest = require('./package.json');
           const { getAzureCredentialAccessToken } = require('./node_modules/@vscode/vsce/out/auth');
           const { getGalleryAPI } = require('./node_modules/@vscode/vsce/out/util');
 
           (async () => {
             const token = await getAzureCredentialAccessToken();
             const api = await getGalleryAPI(token);
-            try {
+            let extension = await api.updateExtensionProperties(
+              'yeceen',
+              'har-auto-analyzer',
+              256 // PublishedExtensionFlags.Public
+            );
+            extension = await api.getExtension(
+              undefined,
+              'yeceen',
+              'har-auto-analyzer',
+              undefined,
+              1 // ExtensionQueryFlags.IncludeVersions
+            );
+            const versionExists = extension?.versions?.some(
+              version => version.version === manifest.version
+            );
+            if (!versionExists) {
               await api.updateExtension(
                 undefined,
                 fs.createReadStream('har-auto-analyzer.vsix'),
                 'yeceen',
                 'har-auto-analyzer'
               );
-            } catch (error) {
-              if (error?.statusCode !== 409) {
-                throw error;
-              }
-              console.log('Marketplace entry already contains this version.');
+              extension = await api.updateExtensionProperties(
+                'yeceen',
+                'har-auto-analyzer',
+                256 // PublishedExtensionFlags.Public
+              );
+            } else {
+              console.log(`Marketplace entry already contains v${manifest.version}.`);
             }
-            await api.updateExtensionProperties(
-              'yeceen',
-              'har-auto-analyzer',
-              256 // PublishedExtensionFlags.Public
-            );
+            console.log(`Marketplace flags after restore: ${extension.flags}.`);
+            console.log(`Latest version flags: ${extension.versions?.[0]?.flags ?? 'unknown'}.`);
             console.log('Updated existing Marketplace entry yeceen.har-auto-analyzer.');
           })().catch(error => {
             console.error(error?.message || error);
