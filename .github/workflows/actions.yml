@@ -106,11 +106,23 @@ jobs:
           (async () => {
             const token = await getAzureCredentialAccessToken();
             const api = await getGalleryAPI(token);
-            await api.updateExtension(
-              undefined,
-              fs.createReadStream('har-auto-analyzer.vsix'),
+            try {
+              await api.updateExtension(
+                undefined,
+                fs.createReadStream('har-auto-analyzer.vsix'),
+                'yeceen',
+                'har-auto-analyzer'
+              );
+            } catch (error) {
+              if (error?.statusCode !== 409) {
+                throw error;
+              }
+              console.log('Marketplace entry already contains this version.');
+            }
+            await api.updateExtensionProperties(
               'yeceen',
-              'har-auto-analyzer'
+              'har-auto-analyzer',
+              256 // PublishedExtensionFlags.Public
             );
             console.log('Updated existing Marketplace entry yeceen.har-auto-analyzer.');
           })().catch(error => {
