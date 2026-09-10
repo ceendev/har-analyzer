@@ -123,24 +123,23 @@ jobs:
               }
               console.log('Marketplace visibility is already public.');
             }
-            console.log(`Marketplace property flags: ${extension?.flags ?? 'unknown'}.`);
-            console.log(`Property version flags: ${extension?.versions?.[0]?.flags ?? 'unknown'}.`);
-            try {
-              extension = await api.getExtension(
-                undefined,
-                'yeceen',
-                'har-auto-analyzer',
-                undefined,
-                1 // ExtensionQueryFlags.IncludeVersions
-              );
-            } catch (error) {
-              const isEmptyQueryResponse = error?.message?.includes(
-                "Cannot read properties of null (reading 'flags')"
-              );
-              if (!isEmptyQueryResponse) {
-                throw error;
-              }
-              console.log('Marketplace query returned no public entry yet.');
+            const query = {
+              filters: [{
+                pageNumber: 1,
+                pageSize: 10,
+                criteria: [
+                  { filterType: 7, value: 'yeceen.har-auto-analyzer' },
+                  { filterType: 13, value: String(256 | 4096 | 32768) }
+                ]
+              }],
+              flags: 1 | 16 | 32768
+            };
+            const queryResult = await api.queryExtensions(undefined, query);
+            const queriedExtension = queryResult?.results
+              ?.flatMap(result => result.extensions || [])
+              .find(item => item.extensionName === 'har-auto-analyzer');
+            if (queriedExtension) {
+              extension = queriedExtension;
             }
             const versionExists = extension?.versions?.some(
               version => version.version === manifest.version
