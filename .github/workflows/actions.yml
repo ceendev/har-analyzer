@@ -107,11 +107,22 @@ jobs:
           (async () => {
             const token = await getAzureCredentialAccessToken();
             const api = await getGalleryAPI(token);
-            let extension = await api.updateExtensionProperties(
-              'yeceen',
-              'har-auto-analyzer',
-              256 // PublishedExtensionFlags.Public
-            );
+            let extension;
+            try {
+              extension = await api.updateExtensionProperties(
+                'yeceen',
+                'har-auto-analyzer',
+                256 // PublishedExtensionFlags.Public
+              );
+            } catch (error) {
+              const isUnchangedResponse = error?.message?.includes(
+                "Cannot read properties of null (reading 'flags')"
+              );
+              if (!isUnchangedResponse) {
+                throw error;
+              }
+              console.log('Marketplace visibility is already public.');
+            }
             extension = await api.getExtension(
               undefined,
               'yeceen',
