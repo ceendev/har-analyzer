@@ -6,6 +6,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.0.21]
+
+- Add draggable column dividers to the request list and Inspector data tables.
+- Remove the remaining content titles inside request and response tabs.
+
 ## [0.0.20]
 
 - Remove collapsible sections from request and response inspector tabs while preserving the main panel controls.
