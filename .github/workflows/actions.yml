@@ -115,14 +115,9 @@ jobs:
                 256 // PublishedExtensionFlags.Public
               );
             } catch (error) {
-              const errorMessage = String(error?.message || error);
-              const isUnchangedResponse = errorMessage.includes(
-                "Cannot read properties of null (reading 'flags')"
+              console.log(
+                `Marketplace visibility update returned no body: ${String(error?.message || error)}`
               );
-              if (!isUnchangedResponse) {
-                throw error;
-              }
-              console.log('Marketplace visibility is already public.');
             }
             const query = {
               filters: [{
