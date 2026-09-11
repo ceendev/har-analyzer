@@ -2,6 +2,12 @@
 
 All notable changes to Har Editor are documented here.
 
+## 0.1.2
+
+- Copy the selected request URL to the system clipboard by double-clicking the
+  Inspector URL bar.
+- Show a VS Code notification after the URL is copied.
+
 ## 0.1.1
 
 - Move the selected request URL into the top Inspector bar.

@@ -408,6 +408,16 @@ function setupInspectorURLScroller() {
             suppressClick = false;
         }
     });
+    scroller.addEventListener("dblclick", function (event) {
+        if (!selectedReq || !selectedReq.fullURL) {
+            return;
+        }
+        event.preventDefault();
+        vscode.postMessage({
+            action: "copyRequestUrl",
+            text: selectedReq.fullURL
+        });
+    });
     scroller.addEventListener("wheel", function (event) {
         if (scroller.scrollWidth <= scroller.clientWidth || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) {
             return;
@@ -856,7 +866,7 @@ function selectReq(index) {
     $(".request-item.selected").removeClass("selected");
     $(".request-item[index='" + index + "']").addClass("selected");
     $(".inspector-method-badge").attr("type", selectedReq.method);
-    $(".inspector-panel-url").attr("title", selectedReq.fullURL);
+    $(".inspector-panel-url").attr("title", "双击复制请求 URL\n" + selectedReq.fullURL);
     $("*[data]:not([round])").each(function () {
         var value = getNested($(this).attr("data"));
         $(this).text(value == null ? "" : String(value));

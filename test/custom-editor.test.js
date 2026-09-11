@@ -38,6 +38,8 @@ assert.ok(
 );
 
 const registrations = [];
+const copiedTexts = [];
+const informationMessages = [];
 const vscode = {
 	commands: {
 		registerCommand() {
@@ -45,9 +47,20 @@ const vscode = {
 		}
 	},
 	window: {
+		showInformationMessage(message) {
+			informationMessages.push(message);
+		},
 		registerCustomEditorProvider(viewType, provider, options) {
 			registrations.push({ viewType, provider, options });
 			return { dispose() {} };
+		}
+	},
+	env: {
+		clipboard: {
+			writeText(text) {
+				copiedTexts.push(text);
+				return Promise.resolve();
+			}
 		}
 	},
 	workspace: {},
@@ -104,7 +117,9 @@ const panel = {
 		asWebviewUri(uri) {
 			return { toString() { return `webview:${uri.toString()}`; } };
 		},
-		onDidReceiveMessage() {}
+		onDidReceiveMessage(handler) {
+			this.messageHandler = handler;
+		}
 	}
 };
 
@@ -118,3 +133,13 @@ assert.strictEqual(panel.webview.options.localResourceRoots.length, 2);
 assert.strictEqual(panel.webview.options.localResourceRoots[1].scheme, 'file');
 assert.strictEqual(panel.webview.options.localResourceRoots[1].fsPath, '/workspace');
 assert.ok(panel.webview.html.includes('webview:file:///workspace/large.har'));
+
+(async function testCopyRequestURLMessage() {
+	assert.strictEqual(typeof panel.webview.messageHandler, 'function');
+	await panel.webview.messageHandler({ action: 'copyRequestUrl', text: 'https://example.test/long/path?a=1' });
+	assert.deepStrictEqual(copiedTexts, ['https://example.test/long/path?a=1']);
+	assert.deepStrictEqual(informationMessages, ['请求 URL 已复制']);
+})().catch(error => {
+	console.error(error);
+	process.exitCode = 1;
+});

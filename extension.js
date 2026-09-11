@@ -95,6 +95,12 @@ function renderHarEditor(panel, document, context) {
 		if (message.action === 'openNewTab') {
 			const document = await vscode.workspace.openTextDocument({ content: message.text });
 			await vscode.window.showTextDocument(document);
+			return;
+		}
+
+		if (message.action === 'copyRequestUrl' && typeof message.text === 'string' && message.text.length > 0) {
+			await vscode.env.clipboard.writeText(message.text);
+			vscode.window.showInformationMessage('请求 URL 已复制');
 		}
 	}, undefined, context.subscriptions);
 }
