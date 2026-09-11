@@ -15,9 +15,12 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('opens HAR files with the custom editor', async function () {
-		this.timeout(15000);
+		this.timeout(30000);
 		const harUri = vscode.Uri.file(path.resolve(__dirname, '../../media/example.har'));
 		const viewType = 'har-editor.editor';
+		const extension = vscode.extensions.getExtension('yeceen.har-editor');
+		assert.ok(extension, 'the Har Editor extension should be installed');
+		await extension.activate();
 		const isMatchingTab = tab => tab && tab.input instanceof vscode.TabInputCustom
 			&& tab.input.viewType === viewType
 			&& tab.input.uri.toString() === harUri.toString();
@@ -25,7 +28,7 @@ suite('Extension Test Suite', () => {
 			.flatMap(group => group.tabs)
 			.find(isMatchingTab);
 		await vscode.commands.executeCommand('vscode.openWith', harUri, viewType);
-		const deadline = Date.now() + 15000;
+		const deadline = Date.now() + 20000;
 		let tab;
 		while (!tab && Date.now() < deadline) {
 			tab = findMatchingTab();

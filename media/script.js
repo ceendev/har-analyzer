@@ -172,7 +172,9 @@ function applyInspectorPanelState() {
         } else {
             this.style.flex = "";
         }
-        $(this).find(".inspector-panel-toggle").attr("aria-expanded", String(expanded));
+        $(this).find(".inspector-panel-toggle")
+            .attr("aria-expanded", String(expanded))
+            .attr("aria-label", (expanded ? "收缩" : "展开") + (panelName == "request" ? "请求" : "响应") + "面板");
     });
 }
 

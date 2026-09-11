@@ -7,6 +7,7 @@ All notable changes to Har Editor are documented here.
 - Copy the selected request URL to the system clipboard by double-clicking the
   Inspector URL bar.
 - Show a VS Code notification after the URL is copied.
+- Correct the response Inspector's expand and collapse chevrons.
 
 ## 0.1.1
 
