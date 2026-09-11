@@ -5,17 +5,35 @@ const path = require('path');
 
 const manifest = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf8'));
 const customEditors = manifest.contributes && manifest.contributes.customEditors;
+const readme = fs.readFileSync(path.resolve(__dirname, '..', 'README.md'), 'utf8');
+const icon = fs.readFileSync(path.resolve(__dirname, '..', 'resources', 'har-editor-icon.png'));
+
+assert.strictEqual(`${manifest.publisher}.${manifest.name}`, 'yeceen.har-editor');
+assert.strictEqual(manifest.displayName, 'Har Editor');
+assert.strictEqual(
+	manifest.description,
+	'A visual HAR workspace for VS Code with automatic file opening, fast request filtering, resizable tables, and split request/response inspection.'
+);
+assert.strictEqual(manifest.repository.url, 'https://github.com/ceendev/har-editor');
+assert.strictEqual(manifest.icon, 'resources/har-editor-icon.png');
+assert.ok(
+	readme.includes('not affiliated with, endorsed by, or published by Matt Foulks'),
+	'the Marketplace README must state the independent publisher relationship prominently'
+);
+assert.strictEqual(icon.readUInt32BE(16), 128, 'Marketplace icon width must be 128px');
+assert.strictEqual(icon.readUInt32BE(20), 128, 'Marketplace icon height must be 128px');
+assert.strictEqual(fs.existsSync(path.resolve(__dirname, '..', 'demo.gif')), false, 'upstream demo must not be packaged');
 
 assert.ok(Array.isArray(customEditors), 'the manifest must contribute a custom editor');
 assert.deepStrictEqual(customEditors[0], {
-	viewType: 'har-auto-analyzer.editor',
-	displayName: 'HAR Auto Analyzer',
+	viewType: 'har-editor.editor',
+	displayName: 'Har Editor',
 	priority: 'default',
 	selector: [{ filenamePattern: '*.har' }]
 });
 
 assert.ok(
-	manifest.activationEvents.includes('onCustomEditor:har-auto-analyzer.editor'),
+	manifest.activationEvents.includes('onCustomEditor:har-editor.editor'),
 	'the extension must activate when VS Code opens the custom editor'
 );
 
@@ -62,7 +80,7 @@ try {
 }
 
 assert.strictEqual(registrations.length, 1, 'activation must register one custom editor');
-assert.strictEqual(registrations[0].viewType, 'har-auto-analyzer.editor');
+assert.strictEqual(registrations[0].viewType, 'har-editor.editor');
 assert.strictEqual(registrations[0].options.supportsMultipleEditorsPerDocument, false);
 assert.strictEqual(registrations[0].options.webviewOptions.retainContextWhenHidden, true);
 assert.strictEqual(typeof registrations[0].provider.openCustomDocument, 'function');

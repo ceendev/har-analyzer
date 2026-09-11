@@ -1,7 +1,7 @@
 const fs = require('fs');
 const vscode = require('vscode');
 
-const VIEW_TYPE = 'har-auto-analyzer.editor';
+const VIEW_TYPE = 'har-editor.editor';
 
 class HarCustomEditorProvider {
 	constructor(context) {
@@ -45,9 +45,9 @@ function activate(context) {
 		})
 	);
 
-	const analyzeCommand = vscode.commands.registerCommand('har-auto-analyzer.analyze', async function () {
+	const openCommand = vscode.commands.registerCommand('har-editor.open', async function () {
 		if (vscode.window.activeTextEditor == null) {
-			vscode.window.showErrorMessage('Open a HAR file before running Analyze.');
+			vscode.window.showErrorMessage('Open a HAR file before running Har Editor.');
 			return;
 		}
 
@@ -58,7 +58,7 @@ function activate(context) {
 		);
 	});
 
-	context.subscriptions.push(analyzeCommand);
+	context.subscriptions.push(openCommand);
 }
 
 function deactivate() {}

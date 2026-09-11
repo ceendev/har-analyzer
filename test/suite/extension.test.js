@@ -17,7 +17,7 @@ suite('Extension Test Suite', () => {
 	test('opens HAR files with the custom editor', async function () {
 		this.timeout(15000);
 		const harUri = vscode.Uri.file(path.resolve(__dirname, '../../media/example.har'));
-		const viewType = 'har-auto-analyzer.editor';
+		const viewType = 'har-editor.editor';
 		const isMatchingTab = tab => tab && tab.input instanceof vscode.TabInputCustom
 			&& tab.input.viewType === viewType
 			&& tab.input.uri.toString() === harUri.toString();

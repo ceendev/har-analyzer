@@ -3,6 +3,7 @@
 .vscode-test/**
 test/**
 PUBLISHING.md
+resources/har-editor-icon-master.png
 *.vsix
 .gitignore
 .yarnrc

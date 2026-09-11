@@ -1,19 +1,19 @@
 {
-  "name": "har-auto-analyzer",
-  "displayName": "HAR Auto Analyzer",
-  "description": "Open and analyze HAR files natively",
-  "version": "0.0.21",
+  "name": "har-editor",
+  "displayName": "Har Editor",
+  "description": "A visual HAR workspace for VS Code with automatic file opening, fast request filtering, resizable tables, and split request/response inspection.",
+  "version": "0.1.0",
   "publisher": "yeceen",
-  "homepage": "https://github.com/ceendev/har-auto-analyzer",
+  "homepage": "https://github.com/ceendev/har-editor",
   "license": "GPL-3",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ceendev/har-auto-analyzer"
+    "url": "https://github.com/ceendev/har-editor"
   },
   "bugs": {
-    "url": "https://github.com/ceendev/har-auto-analyzer/issues"
+    "url": "https://github.com/ceendev/har-editor/issues"
   },
-  "icon": "Icon.png",
+  "icon": "resources/har-editor-icon.png",
   "engines": {
     "vscode": "^1.67.0"
   },
@@ -21,16 +21,27 @@
     "Other",
     "Visualization"
   ],
+  "keywords": [
+    "har",
+    "http archive",
+    "network",
+    "http",
+    "websocket",
+    "request",
+    "response",
+    "viewer",
+    "editor"
+  ],
   "activationEvents": [
-    "onCommand:har-auto-analyzer.analyze",
-    "onCustomEditor:har-auto-analyzer.editor"
+    "onCommand:har-editor.open",
+    "onCustomEditor:har-editor.editor"
   ],
   "main": "./extension.js",
   "contributes": {
     "customEditors": [
       {
-        "viewType": "har-auto-analyzer.editor",
-        "displayName": "HAR Auto Analyzer",
+        "viewType": "har-editor.editor",
+        "displayName": "Har Editor",
         "selector": [
           {
             "filenamePattern": "*.har"
@@ -41,16 +52,16 @@
     ],
     "commands": [
       {
-        "title": "Analyze",
-        "command": "har-auto-analyzer.analyze",
-        "category": "Har Auto Analyzer"
+        "title": "Open HAR File",
+        "command": "har-editor.open",
+        "category": "Har Editor"
       }
     ]
   },
   "scripts": {
     "check": "node --check extension.js && node --check media/script.js && node test/custom-editor.test.js && node test/har-entry.test.js && node test/filter-behavior.test.js",
     "lint": "eslint .",
-    "package": "vsce package --out har-auto-analyzer.vsix",
+    "package": "vsce package --out har-editor.vsix",
     "pretest": "npm run lint",
     "test": "node ./test/runTest.js"
   },
