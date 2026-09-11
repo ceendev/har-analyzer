@@ -99,8 +99,18 @@ function renderHarEditor(panel, document, context) {
 		}
 
 		if (message.action === 'copyRequestUrl' && typeof message.text === 'string' && message.text.length > 0) {
-			await vscode.env.clipboard.writeText(message.text);
-			vscode.window.showInformationMessage('请求 URL 已复制');
+			let success = true;
+			try {
+				await vscode.env.clipboard.writeText(message.text);
+			} catch {
+				success = false;
+			}
+			await panel.webview.postMessage({
+				command: 'copyRequestUrlResult',
+				success,
+				clientX: Number.isFinite(message.clientX) ? message.clientX : 0,
+				clientY: Number.isFinite(message.clientY) ? message.clientY : 0
+			});
 		}
 	}, undefined, context.subscriptions);
 }

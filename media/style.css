@@ -426,6 +426,35 @@ body {
     transform: rotate(180deg);
 }
 
+.copy-toast {
+    position: fixed;
+    z-index: 1000;
+    max-width: calc(100vw - 16px);
+    padding: 6px 10px;
+    box-sizing: border-box;
+    border: 1px solid var(--vscode-notifications-border, var(--vscode-editorGroup-border));
+    border-radius: 4px;
+    color: var(--vscode-notifications-foreground, var(--vscode-editor-foreground));
+    background: var(--vscode-notifications-background, var(--vscode-editorWidget-background));
+    box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.36));
+    font-size: 12px;
+    line-height: 20px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(3px);
+    transition: opacity 90ms ease, transform 90ms ease;
+}
+
+.copy-toast.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.copy-toast.error {
+    border-color: var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground));
+}
+
 .inspector-panel-url {
     flex: 1 1 auto;
     min-width: 0;

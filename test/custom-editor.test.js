@@ -39,7 +39,7 @@ assert.ok(
 
 const registrations = [];
 const copiedTexts = [];
-const informationMessages = [];
+const webviewMessages = [];
 const vscode = {
 	commands: {
 		registerCommand() {
@@ -47,9 +47,6 @@ const vscode = {
 		}
 	},
 	window: {
-		showInformationMessage(message) {
-			informationMessages.push(message);
-		},
 		registerCustomEditorProvider(viewType, provider, options) {
 			registrations.push({ viewType, provider, options });
 			return { dispose() {} };
@@ -117,6 +114,10 @@ const panel = {
 		asWebviewUri(uri) {
 			return { toString() { return `webview:${uri.toString()}`; } };
 		},
+		postMessage(message) {
+			webviewMessages.push(message);
+			return Promise.resolve(true);
+		},
 		onDidReceiveMessage(handler) {
 			this.messageHandler = handler;
 		}
@@ -136,9 +137,19 @@ assert.ok(panel.webview.html.includes('webview:file:///workspace/large.har'));
 
 (async function testCopyRequestURLMessage() {
 	assert.strictEqual(typeof panel.webview.messageHandler, 'function');
-	await panel.webview.messageHandler({ action: 'copyRequestUrl', text: 'https://example.test/long/path?a=1' });
+	await panel.webview.messageHandler({
+		action: 'copyRequestUrl',
+		text: 'https://example.test/long/path?a=1',
+		clientX: 320,
+		clientY: 96
+	});
 	assert.deepStrictEqual(copiedTexts, ['https://example.test/long/path?a=1']);
-	assert.deepStrictEqual(informationMessages, ['请求 URL 已复制']);
+	assert.deepStrictEqual(webviewMessages, [{
+		command: 'copyRequestUrlResult',
+		success: true,
+		clientX: 320,
+		clientY: 96
+	}]);
 })().catch(error => {
 	console.error(error);
 	process.exitCode = 1;

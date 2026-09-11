@@ -417,7 +417,9 @@ function setupInspectorURLScroller() {
         event.preventDefault();
         vscode.postMessage({
             action: "copyRequestUrl",
-            text: selectedReq.fullURL
+            text: selectedReq.fullURL,
+            clientX: event.clientX,
+            clientY: event.clientY
         });
     });
     scroller.addEventListener("wheel", function (event) {
@@ -441,6 +443,40 @@ function setupInspectorURLScroller() {
         }
         event.preventDefault();
     });
+}
+
+var copyToastTimer;
+
+function showCopyToastAt(clientX, clientY, success) {
+    var toast = document.querySelector(".copy-toast");
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.className = "copy-toast";
+        toast.setAttribute("role", "status");
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = success === false ? "请求 URL 复制失败" : "请求 URL 已复制";
+    toast.classList.toggle("error", success === false);
+    toast.classList.remove("visible");
+
+    var anchorX = Number.isFinite(clientX) ? clientX : window.innerWidth / 2;
+    var anchorY = Number.isFinite(clientY) ? clientY : window.innerHeight / 2;
+    var gap = 12;
+    var margin = 8;
+    var left = Math.max(margin, Math.min(anchorX + gap, window.innerWidth - toast.offsetWidth - margin));
+    var top = anchorY + gap;
+    if (top + toast.offsetHeight > window.innerHeight - margin) {
+        top = Math.max(margin, anchorY - toast.offsetHeight - gap);
+    }
+    toast.style.left = left + "px";
+    toast.style.top = top + "px";
+    toast.classList.add("visible");
+
+    clearTimeout(copyToastTimer);
+    copyToastTimer = setTimeout(function () {
+        toast.classList.remove("visible");
+    }, 1600);
 }
 
 function setupInspectorResizer() {
@@ -1221,6 +1257,11 @@ function addRequestGUIItem(entity) {
 window.addEventListener('message', event => {
 
     const message = event.data; // The JSON data our extension sent
+
+    if (message.command === 'copyRequestUrlResult') {
+        showCopyToastAt(message.clientX, message.clientY, message.success);
+        return;
+    }
 
     if (message.command === 'loadError') {
         showLoadError(new Error(message.message));

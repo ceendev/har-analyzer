@@ -19,7 +19,8 @@ files that exceed VS Code's normal text-document size limit.
 - Filter by domain, application, protocol, method, content type, status, or text.
 - Inspect complete request URLs in a resizable request table.
 - Keep the selected request URL in the top Inspector bar and drag horizontally
-  to reveal long paths and query strings, or double-click it to copy.
+  to reveal long paths and query strings, or double-click it to copy with
+  pointer-local feedback.
 - Open request and response details in a draggable split inspector.
 - Resize columns throughout the request list and inspector tables.
 - Collapse either the request or response inspector while keeping one visible.

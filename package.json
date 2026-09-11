@@ -2,7 +2,7 @@
   "name": "har-editor",
   "displayName": "Har Editor",
   "description": "A visual HAR workspace for VS Code with automatic file opening, fast request filtering, resizable tables, and split request/response inspection.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "publisher": "yeceen",
   "homepage": "https://github.com/ceendev/har-editor",
   "license": "GPL-3",
