@@ -2,6 +2,12 @@
 
 All notable changes to Har Editor are documented here.
 
+## 0.1.1
+
+- Move the selected request URL into the top Inspector bar.
+- Allow long URLs to be scrolled with the scrollbar, mouse/touch dragging,
+  mouse wheel, or keyboard navigation.
+
 ## 0.1.0
 
 - Rebrand the extension as `yeceen.har-editor` with an original icon and an

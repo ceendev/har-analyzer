@@ -343,7 +343,92 @@ function closeInspector() {
     $(".main-layout").removeClass("has-inspector resizing");
     $(".request-inspector").removeClass("ready");
     $(".request-item.selected").removeClass("selected");
+    var urlScroller = document.querySelector(".inspector-panel-url");
+    if (urlScroller) {
+        urlScroller.textContent = "";
+        urlScroller.removeAttribute("title");
+        urlScroller.scrollLeft = 0;
+    }
     applyInspectorPanelState();
+}
+
+function setupInspectorURLScroller() {
+    var scroller = document.querySelector(".inspector-panel-url");
+    if (!scroller || scroller.dataset.bound == "true") {
+        return;
+    }
+    scroller.dataset.bound = "true";
+    var dragging = false;
+    var suppressClick = false;
+    var startX = 0;
+    var startScrollLeft = 0;
+
+    scroller.addEventListener("pointerdown", function (event) {
+        if (event.button != 0) {
+            return;
+        }
+        dragging = true;
+        suppressClick = false;
+        startX = event.clientX;
+        startScrollLeft = scroller.scrollLeft;
+        scroller.classList.add("dragging");
+        if (scroller.setPointerCapture) {
+            scroller.setPointerCapture(event.pointerId);
+        }
+    });
+
+    scroller.addEventListener("pointermove", function (event) {
+        if (!dragging) {
+            return;
+        }
+        var delta = event.clientX - startX;
+        if (Math.abs(delta) > 2) {
+            suppressClick = true;
+            event.preventDefault();
+        }
+        scroller.scrollLeft = startScrollLeft - delta;
+    });
+
+    function finishDrag(event) {
+        if (!dragging) {
+            return;
+        }
+        dragging = false;
+        scroller.classList.remove("dragging");
+        if (scroller.hasPointerCapture && scroller.hasPointerCapture(event.pointerId)) {
+            scroller.releasePointerCapture(event.pointerId);
+        }
+    }
+
+    scroller.addEventListener("pointerup", finishDrag);
+    scroller.addEventListener("pointercancel", finishDrag);
+    scroller.addEventListener("click", function (event) {
+        if (suppressClick) {
+            event.preventDefault();
+            suppressClick = false;
+        }
+    });
+    scroller.addEventListener("wheel", function (event) {
+        if (scroller.scrollWidth <= scroller.clientWidth || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) {
+            return;
+        }
+        event.preventDefault();
+        scroller.scrollLeft += event.deltaY;
+    }, { passive: false });
+    scroller.addEventListener("keydown", function (event) {
+        if (event.key == "ArrowLeft") {
+            scroller.scrollLeft -= 40;
+        } else if (event.key == "ArrowRight") {
+            scroller.scrollLeft += 40;
+        } else if (event.key == "Home") {
+            scroller.scrollLeft = 0;
+        } else if (event.key == "End") {
+            scroller.scrollLeft = scroller.scrollWidth;
+        } else {
+            return;
+        }
+        event.preventDefault();
+    });
 }
 
 function setupInspectorResizer() {
@@ -664,6 +749,7 @@ function setupGUI() {
     });
 
     setupInspectorResizer();
+    setupInspectorURLScroller();
     setupRequestColumnResizers();
 
     document.addEventListener('keydown', (e) => {
@@ -775,6 +861,10 @@ function selectReq(index) {
         var value = getNested($(this).attr("data"));
         $(this).text(value == null ? "" : String(value));
     });
+    var urlScroller = document.querySelector(".inspector-panel-url");
+    if (urlScroller) {
+        urlScroller.scrollLeft = 0;
+    }
     renderRawViews();
     $("*[data][round]").each(function () {
         $(this).text(round(getNested($(this).attr("data")), $(this).attr("round")));

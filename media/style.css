@@ -301,7 +301,7 @@ body {
 .inspector-bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 8px;
     flex: 0 0 34px;
     padding: 0 8px 0 12px;
     box-sizing: border-box;
@@ -309,6 +309,7 @@ body {
 }
 
 .inspector-close {
+    flex: 0 0 28px;
     width: 28px;
     height: 28px;
     font-size: 22px;
@@ -426,20 +427,35 @@ body {
 }
 
 .inspector-panel-url {
-    flex: 0 0 30px;
+    flex: 1 1 auto;
     min-width: 0;
-    padding: 7px 12px 5px;
+    height: 100%;
+    padding: 8px 2px 5px;
     box-sizing: border-box;
     color: var(--vscode-textLink-foreground);
     font-family: var(--vscode-editor-font-family, monospace);
     font-size: 12px;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-x: auto;
+    overflow-y: hidden;
+    text-overflow: clip;
     direction: ltr;
+    cursor: grab;
+    user-select: none;
+    touch-action: pan-y;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
 }
 
-.inspector-panel.collapsed .inspector-panel-url,
+.inspector-panel-url.dragging {
+    cursor: grabbing;
+}
+
+.inspector-panel-url:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
 .inspector-panel.collapsed .tab-group,
 .inspector-panel.collapsed .inspector-panel-content {
     display: none;
@@ -869,13 +885,6 @@ body.resizing-columns * {
 
 .templates {
     display: none;
-}
-
-.inspector-label {
-    user-select: none;
-    font-size: 12px;
-    font-weight: 200;
-    color: var(--vscode-descriptionForeground);
 }
 
 .subscript {
