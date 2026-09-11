@@ -92,4 +92,4 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           allow-no-subscriptions: true
       - name: Publish using Microsoft Entra ID
-        run: npx --no-install vsce publish --packagePath har-editor.vsix --azure-credential
+        run: npx --no-install vsce publish --packagePath har-editor.vsix --azure-credential --skip-duplicate
