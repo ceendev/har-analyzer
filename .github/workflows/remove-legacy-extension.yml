@@ -1,0 +1,60 @@
+name: Remove legacy Har Editor extension
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unpublish:
+    if: github.repository == 'ceendev/har-assist' && github.ref == 'refs/heads/ceen'
+    runs-on: ubuntu-latest
+    environment: marketplace
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Verify Har Assist is published and validated
+        run: |
+          node <<'NODE'
+          (async () => {
+            const response = await fetch('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json;api-version=7.2-preview.1'
+              },
+              body: JSON.stringify({
+                filters: [{criteria: [{filterType: 7, value: 'yeceen.har-assist'}], pageNumber: 1, pageSize: 1}],
+                flags: 259
+              }),
+              signal: AbortSignal.timeout(30000)
+            });
+            if (!response.ok) throw new Error(`Marketplace HTTP ${response.status}`);
+            const data = await response.json();
+            const extension = data.results?.[0]?.extensions?.[0];
+            if (extension?.publisher?.publisherName !== 'yeceen' ||
+                extension.extensionName !== 'har-assist' ||
+                extension.versions?.[0]?.version !== '0.1.5' ||
+                !/\bvalidated\b/.test(extension.flags) ||
+                !/\bpublic\b/.test(extension.flags)) {
+              throw new Error('The replacement yeceen.har-assist 0.1.5 must be validated and public');
+            }
+            console.log('Verified yeceen.har-assist 0.1.5 is validated and public');
+          })().catch(error => { console.error(error.message); process.exitCode = 1; });
+          NODE
+      - name: Sign in to Azure with GitHub OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+      - name: Delete only yeceen.har-editor
+        run: npx --no-install vsce unpublish yeceen.har-editor --azure-credential --force
