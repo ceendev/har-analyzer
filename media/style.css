@@ -178,6 +178,47 @@ body {
     line-height: 1;
 }
 
+.inspector-copy {
+    display: inline-flex;
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    color: var(--vscode-descriptionForeground);
+    background: transparent;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 90ms ease, color 90ms ease, background 90ms ease;
+}
+
+.inspector-copy .codicon {
+    font-size: 16px;
+}
+
+.inspector-bar:hover .inspector-copy,
+.inspector-bar:focus-within .inspector-copy,
+.inspector-copy.copied {
+    opacity: 1;
+    visibility: visible;
+}
+
+.inspector-copy:hover,
+.inspector-copy:focus-visible,
+.inspector-copy.copied {
+    color: var(--vscode-editor-foreground);
+    background: var(--vscode-toolbar-hoverBackground);
+}
+
+.inspector-copy:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
 .clear-search:hover,
 .inspector-close:hover {
     color: var(--vscode-editor-foreground);

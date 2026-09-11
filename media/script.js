@@ -351,11 +351,13 @@ function closeInspector() {
         urlScroller.removeAttribute("title");
         urlScroller.scrollLeft = 0;
     }
+    resetInspectorCopyButton();
     applyInspectorPanelState();
 }
 
 function setupInspectorURLScroller() {
     var scroller = document.querySelector(".inspector-panel-url");
+    var copyButton = document.querySelector(".inspector-copy");
     if (!scroller || scroller.dataset.bound == "true") {
         return;
     }
@@ -410,18 +412,27 @@ function setupInspectorURLScroller() {
             suppressClick = false;
         }
     });
-    scroller.addEventListener("dblclick", function (event) {
-        if (!selectedReq || !selectedReq.fullURL) {
-            return;
-        }
-        event.preventDefault();
-        vscode.postMessage({
-            action: "copyRequestUrl",
-            text: selectedReq.fullURL,
-            clientX: event.clientX,
-            clientY: event.clientY
+    if (copyButton) {
+        copyButton.addEventListener("click", function (event) {
+            if (!selectedReq || !selectedReq.fullURL) {
+                return;
+            }
+            event.preventDefault();
+            var clientX = event.clientX;
+            var clientY = event.clientY;
+            if (clientX === 0 && clientY === 0) {
+                var buttonRect = copyButton.getBoundingClientRect();
+                clientX = buttonRect.left + buttonRect.width / 2;
+                clientY = buttonRect.top + buttonRect.height / 2;
+            }
+            vscode.postMessage({
+                action: "copyRequestUrl",
+                text: selectedReq.fullURL,
+                clientX: clientX,
+                clientY: clientY
+            });
         });
-    });
+    }
     scroller.addEventListener("wheel", function (event) {
         if (scroller.scrollWidth <= scroller.clientWidth || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) {
             return;
@@ -446,6 +457,43 @@ function setupInspectorURLScroller() {
 }
 
 var copyToastTimer;
+var copyButtonResetTimer;
+
+function resetInspectorCopyButton() {
+    var button = document.querySelector(".inspector-copy");
+    if (!button) {
+        return;
+    }
+    var icon = button.querySelector(".codicon");
+    button.classList.remove("copied");
+    button.setAttribute("aria-label", "复制请求 URL");
+    button.setAttribute("title", "复制请求 URL");
+    if (icon) {
+        icon.classList.remove("codicon-check");
+        icon.classList.add("codicon-copy");
+    }
+}
+
+function showInspectorCopyResult(success) {
+    clearTimeout(copyButtonResetTimer);
+    resetInspectorCopyButton();
+    if (success === false) {
+        return;
+    }
+    var button = document.querySelector(".inspector-copy");
+    if (!button) {
+        return;
+    }
+    var icon = button.querySelector(".codicon");
+    button.classList.add("copied");
+    button.setAttribute("aria-label", "请求 URL 已复制");
+    button.setAttribute("title", "请求 URL 已复制");
+    if (icon) {
+        icon.classList.remove("codicon-copy");
+        icon.classList.add("codicon-check");
+    }
+    copyButtonResetTimer = setTimeout(resetInspectorCopyButton, 1600);
+}
 
 function showCopyToastAt(clientX, clientY, success) {
     var toast = document.querySelector(".copy-toast");
@@ -904,7 +952,8 @@ function selectReq(index) {
     $(".request-item.selected").removeClass("selected");
     $(".request-item[index='" + index + "']").addClass("selected");
     $(".inspector-method-badge").attr("type", selectedReq.method);
-    $(".inspector-panel-url").attr("title", "双击复制请求 URL\n" + selectedReq.fullURL);
+    resetInspectorCopyButton();
+    $(".inspector-panel-url").attr("title", selectedReq.fullURL);
     $("*[data]:not([round])").each(function () {
         var value = getNested($(this).attr("data"));
         $(this).text(value == null ? "" : String(value));
@@ -1259,6 +1308,7 @@ window.addEventListener('message', event => {
     const message = event.data; // The JSON data our extension sent
 
     if (message.command === 'copyRequestUrlResult') {
+        showInspectorCopyResult(message.success);
         showCopyToastAt(message.clientX, message.clientY, message.success);
         return;
     }

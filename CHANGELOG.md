@@ -2,6 +2,12 @@
 
 All notable changes to Har Editor are documented here.
 
+## 0.1.4
+
+- Reveal a copy button when hovering or focusing the Inspector URL bar.
+- Replace the copy icon with a checkmark briefly after a successful copy while
+  retaining pointer-local feedback.
+
 ## 0.1.3
 
 - Show URL copy feedback beside the pointer instead of in VS Code's global
