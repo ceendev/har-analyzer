@@ -1,6 +1,12 @@
 # Changelog
 
-All notable changes to Har Editor are documented here.
+All notable changes to Har Assist are documented here.
+
+## 0.1.5
+
+- Rebrand the extension as `Har Assist` with extension ID
+  `yeceen.har-assist` and repository `ceendev/har-assist`.
+- Replace the previous artwork with a new network-flow and assistant-spark icon.
 
 ## 0.1.4
 

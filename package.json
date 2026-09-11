@@ -1,19 +1,19 @@
 {
-  "name": "har-editor",
-  "displayName": "Har Editor",
-  "description": "A visual HAR workspace for VS Code with automatic file opening, fast request filtering, resizable tables, and split request/response inspection.",
-  "version": "0.1.4",
+  "name": "har-assist",
+  "displayName": "Har Assist",
+  "description": "A visual HAR assistant for VS Code with automatic file opening, fast request filtering, resizable tables, and split request/response inspection.",
+  "version": "0.1.5",
   "publisher": "yeceen",
-  "homepage": "https://github.com/ceendev/har-editor",
+  "homepage": "https://github.com/ceendev/har-assist",
   "license": "GPL-3",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ceendev/har-editor"
+    "url": "https://github.com/ceendev/har-assist"
   },
   "bugs": {
-    "url": "https://github.com/ceendev/har-editor/issues"
+    "url": "https://github.com/ceendev/har-assist/issues"
   },
-  "icon": "resources/har-editor-icon.png",
+  "icon": "resources/har-assist-icon.png",
   "engines": {
     "vscode": "^1.67.0"
   },
@@ -33,15 +33,15 @@
     "editor"
   ],
   "activationEvents": [
-    "onCommand:har-editor.open",
-    "onCustomEditor:har-editor.editor"
+    "onCommand:har-assist.open",
+    "onCustomEditor:har-assist.editor"
   ],
   "main": "./extension.js",
   "contributes": {
     "customEditors": [
       {
-        "viewType": "har-editor.editor",
-        "displayName": "Har Editor",
+        "viewType": "har-assist.editor",
+        "displayName": "Har Assist",
         "selector": [
           {
             "filenamePattern": "*.har"
@@ -53,15 +53,15 @@
     "commands": [
       {
         "title": "Open HAR File",
-        "command": "har-editor.open",
-        "category": "Har Editor"
+        "command": "har-assist.open",
+        "category": "Har Assist"
       }
     ]
   },
   "scripts": {
     "check": "node --check extension.js && node --check media/script.js && node test/custom-editor.test.js && node test/har-entry.test.js && node test/filter-behavior.test.js",
     "lint": "eslint .",
-    "package": "vsce package --out har-editor.vsix",
+    "package": "vsce package --out har-assist.vsix",
     "pretest": "npm run lint",
     "test": "node ./test/runTest.js"
   },

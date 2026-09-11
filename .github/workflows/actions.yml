@@ -39,8 +39,8 @@ jobs:
         run: |
           node <<'NODE'
           const manifest = require('./package.json');
-          if (`${manifest.publisher}.${manifest.name}` !== 'yeceen.har-editor') {
-            throw new Error('Expected extension ID yeceen.har-editor');
+          if (`${manifest.publisher}.${manifest.name}` !== 'yeceen.har-assist') {
+            throw new Error('Expected extension ID yeceen.har-assist');
           }
           if (process.env.RELEASE_TAG && process.env.RELEASE_TAG !== `v${manifest.version}`) {
             throw new Error(`Release tag must be v${manifest.version}`);
@@ -51,12 +51,12 @@ jobs:
       - run: npm run package
       - uses: actions/upload-artifact@v4
         with:
-          name: har-editor-vsix
-          path: har-editor.vsix
+          name: har-assist-vsix
+          path: har-assist.vsix
           if-no-files-found: error
 
   publish:
-    if: github.repository == 'ceendev/har-editor' && ((github.event_name == 'release' && github.event.release.prerelease == false) || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && inputs.publish == true))
+    if: github.repository == 'ceendev/har-assist' && ((github.event_name == 'release' && github.event.release.prerelease == false) || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && inputs.publish == true))
     needs: build
     runs-on: ubuntu-latest
     environment: marketplace
@@ -75,7 +75,7 @@ jobs:
       - run: npm ci
       - uses: actions/download-artifact@v4
         with:
-          name: har-editor-vsix
+          name: har-assist-vsix
       - name: Check publishing credentials
         env:
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
@@ -92,10 +92,10 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           allow-no-subscriptions: true
       - name: Publish using Microsoft Entra ID
-        run: npx --no-install vsce publish --packagePath har-editor.vsix --azure-credential --skip-duplicate
+        run: npx --no-install vsce publish --packagePath har-assist.vsix --azure-credential --skip-duplicate
 
   github-release:
-    if: github.repository == 'ceendev/har-editor' && ((github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || github.event_name == 'workflow_dispatch')
+    if: github.repository == 'ceendev/har-assist' && ((github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || github.event_name == 'workflow_dispatch')
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -103,14 +103,14 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: har-editor-vsix
+          name: har-assist-vsix
       - name: Create GitHub release and attach VSIX
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
         run: |
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" har-editor.vsix --clobber --repo "$GITHUB_REPOSITORY"
+            gh release upload "$RELEASE_TAG" har-assist.vsix --clobber --repo "$GITHUB_REPOSITORY"
           else
-            gh release create "$RELEASE_TAG" har-editor.vsix --verify-tag --generate-notes --title "Har Editor ${RELEASE_TAG#v}" --repo "$GITHUB_REPOSITORY"
+            gh release create "$RELEASE_TAG" har-assist.vsix --verify-tag --generate-notes --title "Har Assist ${RELEASE_TAG#v}" --repo "$GITHUB_REPOSITORY"
           fi

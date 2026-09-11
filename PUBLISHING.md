@@ -1,10 +1,10 @@
-# Publishing Har Editor
+# Publishing Har Assist
 
-The extension identity is `yeceen.har-editor`:
+The extension identity is `yeceen.har-assist`:
 
 - Marketplace publisher ID: `yeceen`.
-- Extension name: `har-editor`.
-- Source repository: <https://github.com/ceendev/har-editor>.
+- Extension name: `har-assist`.
+- Source repository: <https://github.com/ceendev/har-assist>.
 
 This identity and its Marketplace presentation are independent from the upstream
 project. The README retains the required license attribution and states the
@@ -16,14 +16,14 @@ Create a GitHub environment named `marketplace` under **Settings > Environments*
 If deployment restrictions are configured, allow the version tags used for
 releases.
 
-Har Editor uses Microsoft Entra ID with GitHub OIDC for long-term publishing; no
+Har Assist uses Microsoft Entra ID with GitHub OIDC for long-term publishing; no
 stored PAT is required.
 
 1. Configure a user-assigned managed identity in Azure and record its client ID
    and tenant ID.
 2. Configure its GitHub federated credential with:
    - Issuer: `https://token.actions.githubusercontent.com`
-   - Subject: `repo:ceendev@325867239/har-editor@1359690326:environment:marketplace`
+   - Subject: `repo:ceendev@325867239/har-assist@1359690326:environment:marketplace`
    - Audience: `api://AzureADTokenExchange`
 3. Add the managed identity to the Azure DevOps organization connected to the
    Marketplace publisher, with **Stakeholder** access.
@@ -43,7 +43,7 @@ and [Azure Login with OIDC](https://github.com/Azure/login#login-with-openid-con
 
 1. Update the version in `package.json` and synchronize `package-lock.json`.
 2. Run `npm ci`, `npm run check`, and `npm run package`.
-3. Install and verify `har-editor.vsix` locally.
+3. Install and verify `har-assist.vsix` locally.
 4. Commit and push to `ceen` or `main`.
 5. Create a regular GitHub Release whose tag is exactly `v` plus the package
    version, such as `v0.1.0`.
@@ -55,15 +55,15 @@ for every release.
 To retry a release explicitly:
 
 ```bash
-gh workflow run actions.yml --repo ceendev/har-editor --ref v0.1.0 \
+gh workflow run actions.yml --repo ceendev/har-assist --ref v0.1.0 \
   -f publish=true -f release_tag=v0.1.0
 ```
 
 The Marketplace URL will be
-<https://marketplace.visualstudio.com/items?itemName=yeceen.har-editor> after the
+<https://marketplace.visualstudio.com/items?itemName=yeceen.har-assist> after the
 first approved publication.
 
 Because the publisher was previously restricted by Marketplace enforcement,
 contact `VSMarketplace@microsoft.com` and obtain confirmation that the publisher
-is unlocked before attempting the first Har Editor release. A new extension ID
+is unlocked before attempting the first Har Assist release. A new extension ID
 must not be used to bypass an unresolved Marketplace restriction.

@@ -1,15 +1,15 @@
-# Har Editor
+# Har Assist
 
-**A visual HAR workspace for VS Code with automatic file opening, fast request filtering, resizable tables, and split request/response inspection.**
+**A visual HAR assistant for VS Code with automatic file opening, fast request filtering, resizable tables, and split request/response inspection.**
 
-> **Independent project:** Har Editor is independently maintained by
+> **Independent project:** Har Assist is independently maintained by
 > [ceendev](https://github.com/ceendev) and published by **yeceen**. It is based
 > on the GPL-licensed [HAR Analyzer by Matt Foulks](https://github.com/mfoulks3200/har-analyzer)
 > and is **not affiliated with, endorsed by, or published by Matt Foulks**.
 
-<img src="resources/har-editor-icon.png" alt="Har Editor icon" width="128" height="128">
+<img src="resources/har-assist-icon.png" alt="Har Assist icon" width="128" height="128">
 
-Open a `.har` file and Har Editor takes over automatically. The file opens as a
+Open a `.har` file and Har Assist takes over automatically. The file opens as a
 dedicated read-only network workspace instead of raw JSON, including large HAR
 files that exceed VS Code's normal text-document size limit.
 
@@ -37,7 +37,7 @@ npm run check
 npm run package
 ```
 
-The package command creates `har-editor.vsix`. Install it with VS Code's
+The package command creates `har-assist.vsix`. Install it with VS Code's
 **Extensions: Install from VSIX...** command.
 
 GitHub Actions builds pushes and pull requests targeting `ceen` or `main`.
@@ -46,11 +46,11 @@ the build succeeds. See [Publishing](PUBLISHING.md) for the release setup.
 
 ## License and attribution
 
-Har Editor is released under GPL-3.0 and retains the original project's license
+Har Assist is released under GPL-3.0 and retains the original project's license
 and copyright notices. The current extension has a new identity, original icon,
 automatic custom-editor integration, large-file loading, a redesigned filtering
 toolbar, a split request/response inspector, and resizable tables.
 
-The Har Editor icon was created specifically for this project without using the
+The Har Assist icon was created specifically for this project without using the
 upstream artwork as an input or reference. See
 [Artwork provenance](ARTWORK-PROVENANCE.md).

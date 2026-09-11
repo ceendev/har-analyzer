@@ -1,7 +1,7 @@
 const fs = require('fs');
 const vscode = require('vscode');
 
-const VIEW_TYPE = 'har-editor.editor';
+const VIEW_TYPE = 'har-assist.editor';
 
 class HarCustomEditorProvider {
 	constructor(context) {
@@ -45,9 +45,9 @@ function activate(context) {
 		})
 	);
 
-	const openCommand = vscode.commands.registerCommand('har-editor.open', async function () {
+	const openCommand = vscode.commands.registerCommand('har-assist.open', async function () {
 		if (vscode.window.activeTextEditor == null) {
-			vscode.window.showErrorMessage('Open a HAR file before running Har Editor.');
+			vscode.window.showErrorMessage('Open a HAR file before running Har Assist.');
 			return;
 		}
 

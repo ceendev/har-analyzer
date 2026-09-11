@@ -17,9 +17,9 @@ suite('Extension Test Suite', () => {
 	test('opens HAR files with the custom editor', async function () {
 		this.timeout(30000);
 		const harUri = vscode.Uri.file(path.resolve(__dirname, '../../media/example.har'));
-		const viewType = 'har-editor.editor';
-		const extension = vscode.extensions.getExtension('yeceen.har-editor');
-		assert.ok(extension, 'the Har Editor extension should be installed');
+		const viewType = 'har-assist.editor';
+		const extension = vscode.extensions.getExtension('yeceen.har-assist');
+		assert.ok(extension, 'the Har Assist extension should be installed');
 		await extension.activate();
 		const isMatchingTab = tab => tab && tab.input instanceof vscode.TabInputCustom
 			&& tab.input.viewType === viewType

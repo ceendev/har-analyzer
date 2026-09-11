@@ -6,16 +6,16 @@ const path = require('path');
 const manifest = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf8'));
 const customEditors = manifest.contributes && manifest.contributes.customEditors;
 const readme = fs.readFileSync(path.resolve(__dirname, '..', 'README.md'), 'utf8');
-const icon = fs.readFileSync(path.resolve(__dirname, '..', 'resources', 'har-editor-icon.png'));
+const icon = fs.readFileSync(path.resolve(__dirname, '..', 'resources', 'har-assist-icon.png'));
 
-assert.strictEqual(`${manifest.publisher}.${manifest.name}`, 'yeceen.har-editor');
-assert.strictEqual(manifest.displayName, 'Har Editor');
+assert.strictEqual(`${manifest.publisher}.${manifest.name}`, 'yeceen.har-assist');
+assert.strictEqual(manifest.displayName, 'Har Assist');
 assert.strictEqual(
 	manifest.description,
-	'A visual HAR workspace for VS Code with automatic file opening, fast request filtering, resizable tables, and split request/response inspection.'
+	'A visual HAR assistant for VS Code with automatic file opening, fast request filtering, resizable tables, and split request/response inspection.'
 );
-assert.strictEqual(manifest.repository.url, 'https://github.com/ceendev/har-editor');
-assert.strictEqual(manifest.icon, 'resources/har-editor-icon.png');
+assert.strictEqual(manifest.repository.url, 'https://github.com/ceendev/har-assist');
+assert.strictEqual(manifest.icon, 'resources/har-assist-icon.png');
 assert.ok(
 	readme.includes('not affiliated with, endorsed by, or published by Matt Foulks'),
 	'the Marketplace README must state the independent publisher relationship prominently'
@@ -26,14 +26,14 @@ assert.strictEqual(fs.existsSync(path.resolve(__dirname, '..', 'demo.gif')), fal
 
 assert.ok(Array.isArray(customEditors), 'the manifest must contribute a custom editor');
 assert.deepStrictEqual(customEditors[0], {
-	viewType: 'har-editor.editor',
-	displayName: 'Har Editor',
+	viewType: 'har-assist.editor',
+	displayName: 'Har Assist',
 	priority: 'default',
 	selector: [{ filenamePattern: '*.har' }]
 });
 
 assert.ok(
-	manifest.activationEvents.includes('onCustomEditor:har-editor.editor'),
+	manifest.activationEvents.includes('onCustomEditor:har-assist.editor'),
 	'the extension must activate when VS Code opens the custom editor'
 );
 
@@ -90,7 +90,7 @@ try {
 }
 
 assert.strictEqual(registrations.length, 1, 'activation must register one custom editor');
-assert.strictEqual(registrations[0].viewType, 'har-editor.editor');
+assert.strictEqual(registrations[0].viewType, 'har-assist.editor');
 assert.strictEqual(registrations[0].options.supportsMultipleEditorsPerDocument, false);
 assert.strictEqual(registrations[0].options.webviewOptions.retainContextWhenHidden, true);
 assert.strictEqual(typeof registrations[0].provider.openCustomDocument, 'function');

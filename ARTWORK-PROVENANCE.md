@@ -1,23 +1,22 @@
-# Har Editor artwork provenance
+# Har Assist artwork provenance
 
 ## Primary artwork
 
-The Har Editor icon was created specifically for this project on September 11,
+The Har Assist icon was created specifically for this project on September 11,
 2026 using OpenAI image-generation tooling. No upstream artwork, screenshots, or
 other extension icons were provided as inputs or references.
 
-The written brief requested an abstract HAR document containing three network
-request rows with a distinct editing-nib accent, rendered in navy, cyan, teal,
-and amber. It explicitly excluded text, trademarks, the VS Code logo, browser
-logos, magnifying glasses, and any resemblance to the original HAR Analyzer
-artwork.
+The written brief requested three cyan and blue network request traces converging
+toward a mint assistant sparkle on a navy rounded-square tile. It explicitly
+excluded text, letters, trademarks, the VS Code logo, browser logos, pencils,
+document outlines, magnifying glasses, and generic robot imagery.
 
 The selected image was resized without compositing it with third-party artwork.
 
 | File | Role | SHA-256 |
 | --- | --- | --- |
-| `resources/har-editor-icon.png` | 128 x 128 Marketplace icon | `987ce6c0567792fd4ece686e1ae0f31a915d105b6f24eb134008831484e7207e` |
-| `resources/har-editor-icon-master.png` | 1254 x 1254 generated master | `d495c05280360baf1f56ac059ae1ececfd7935fa3e5bb7efbbcd4eb52ff37578` |
+| `resources/har-assist-icon.png` | 128 x 128 Marketplace icon | `0988dcda3b52688cedccb19387358c92ea7225ec41e4ff7d3aabec660a2ee85e` |
+| `resources/har-assist-icon-master.png` | 1254 x 1254 generated master | `c74bbb9d4180e60ce384498c1b889d9ee9da67f2fe4d998a272ef278ad5ac145` |
 
 The high-resolution master is kept in the source repository for provenance and
 excluded from the packaged VSIX.
