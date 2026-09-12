@@ -1,0 +1,68 @@
+name: Auto Release on Version Bump
+
+on:
+  push:
+    branches: [ceen, main]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.version.outputs.release }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: version
+        shell: bash
+        run: |
+          current=$(node -p "require('./package.json').version")
+          previous=$(git show HEAD^:package.json 2>/dev/null | node -e "let s=''; process.stdin.on('data', d => s += d); process.stdin.on('end', () => { try { process.stdout.write(JSON.parse(s).version || '') } catch (_) {} })" || true)
+          if [ -n "$previous" ] && [ "$current" != "$previous" ]; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "version=$current" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  release:
+    needs: detect
+    if: needs.detect.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    environment: marketplace
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run package
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.detect.outputs.version }}
+        run: gh release create "v$VERSION" har-assist.vsix --generate-notes --title "Har Assist $VERSION" --repo "$GITHUB_REPOSITORY"
+      - name: Check publishing credentials
+        env:
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+        run: |
+          if [ -z "$AZURE_CLIENT_ID" ] || [ -z "$AZURE_TENANT_ID" ]; then
+            echo "::error::Set AZURE_CLIENT_ID and AZURE_TENANT_ID in the marketplace environment."
+            exit 1
+          fi
+      - name: Sign in to Azure with GitHub OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+      - name: Publish to Marketplace
+        run: npx --no-install vsce publish --packagePath har-assist.vsix --azure-credential --skip-duplicate
