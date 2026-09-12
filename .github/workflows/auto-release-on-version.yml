@@ -48,7 +48,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.detect.outputs.version }}
-        run: gh release create "v$VERSION" har-assist.vsix --generate-notes --title "Har Assist $VERSION" --repo "$GITHUB_REPOSITORY"
+        run: gh release create "v$VERSION" har-assist.vsix --target "$GITHUB_SHA" --generate-notes --title "Har Assist $VERSION" --repo "$GITHUB_REPOSITORY"
       - name: Check publishing credentials
         env:
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
