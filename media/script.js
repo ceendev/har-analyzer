@@ -1179,9 +1179,10 @@ function formatJSON(text) {
 }
 
 function format(text, mimeType) {
-    if (mimeType == "text/html" || mimeType == "text/xml") {
+    var normalizedMimeType = String(mimeType || "").toLowerCase().split(";", 1)[0].trim();
+    if (normalizedMimeType == "text/html" || normalizedMimeType == "text/xml" || normalizedMimeType == "application/xhtml+xml") {
         return formatXML(text);
-    } else if (mimeType == "application/json") {
+    } else if (normalizedMimeType == "application/json" || normalizedMimeType.endsWith("+json")) {
         return formatJSON(text);
     } else {
         return text;
@@ -1245,6 +1246,8 @@ function addRequestItem(reqItem) {
     var content = "";
     var formatted = false;
     var responseBody = decodeResponseBody(reqItem.response.content, mimeType);
+    var requestPostData = reqItem.request.postData || {};
+    var requestBody = format(requestPostData.text || "", requestPostData.mimeType || getHeaderValue(reqItem.request.headers, "content-type"));
     if (reqItem.response.content.text != null) {
         content = responseBody;
         if (mimeType != "text/plain") {
@@ -1269,6 +1272,7 @@ function addRequestItem(reqItem) {
         "status": reqItem.response.status + " " + reqItem.response.statusText,
         "index": reqs.length,
         "content": content,
+        "requestBody": requestBody,
         "contentShort": content.substring(0, 5000),
         "mimeType": mimeType,
         "formatted": formatted,
