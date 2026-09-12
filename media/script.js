@@ -165,6 +165,12 @@ function createSearchValues(reqItem, entity, responseBody) {
         "response-body": [responseBody],
         "response-cookies": getHeaderSearchValues(response.cookies),
         status: [String(response.status), response.statusText || ""],
+        server: [reqItem.serverIPAddress || ""],
+        client: [reqItem.clientIPAddress || ""],
+        highlight: [],
+        interceptor: [],
+        notes: [],
+        console: [],
         response: responseValues,
         all: requestValues.concat(responseValues, entity.domain, entity.applicationLabel,
             entity.application == "__none__" ? "" : entity.application)
