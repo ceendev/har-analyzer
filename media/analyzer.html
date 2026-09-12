@@ -16,18 +16,37 @@
             <option value="all">全部</option>
             <option value="url">URL</option>
             <option value="request">请求</option>
+            <option value="request-method">方法</option>
+            <option value="request-type">请求类型</option>
+            <option value="request-headers">请求头</option>
+            <option value="request-body">请求体</option>
+            <option value="request-params">请求参数</option>
+            <option value="request-cookies">请求 Cookie</option>
             <option value="response">响应</option>
+            <option value="response-type">响应类型</option>
+            <option value="response-headers">响应头</option>
+            <option value="response-body">响应体</option>
+            <option value="response-cookies">响应 Cookie</option>
+            <option value="status">状态码</option>
         </select>
         <select class="search-mode" aria-label="搜索方式">
             <option value="contains">包含</option>
+            <option value="notContains">不包含</option>
             <option value="startsWith">开头</option>
+            <option value="endsWith">结尾</option>
             <option value="equals">等于</option>
+            <option value="notEquals">不等于</option>
+            <option value="wildcard">匹配通配符</option>
+            <option value="notWildcard">不匹配通配符</option>
+            <option value="regex">匹配正则</option>
+            <option value="notRegex">不匹配正则</option>
         </select>
         <div class="search-box">
             <div class="codicon codicon-search"></div>
             <input class="search" placeholder="搜索内容" aria-label="搜索内容" />
             <button class="clear-search" type="button" aria-label="清除搜索">×</button>
         </div>
+        <button class="case-sensitive" type="button" aria-label="区分大小写" aria-pressed="false">Aa</button>
     </div>
     <div class="quick-filters" role="toolbar" aria-label="快捷过滤">
         <div class="quick-filter-group">

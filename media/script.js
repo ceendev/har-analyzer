@@ -105,14 +105,27 @@ function getApplicationInfo(reqItem) {
     return { key: key, label: label };
 }
 
-function matchesSearchText(value, query, mode) {
-    var normalizedValue = String(value || "").toLowerCase();
-    var normalizedQuery = String(query || "").toLowerCase();
-    if (mode == "startsWith") {
-        return normalizedValue.startsWith(normalizedQuery);
+function matchesSearchText(value, query, mode, caseSensitive) {
+    var normalizedValue = String(value || "");
+    var normalizedQuery = String(query || "");
+    if (!caseSensitive) {
+        normalizedValue = normalizedValue.toLowerCase();
+        normalizedQuery = normalizedQuery.toLowerCase();
     }
-    if (mode == "equals") {
-        return normalizedValue == normalizedQuery;
+    if (mode == "startsWith") return normalizedValue.startsWith(normalizedQuery);
+    if (mode == "endsWith") return normalizedValue.endsWith(normalizedQuery);
+    if (mode == "equals") return normalizedValue == normalizedQuery;
+    if (mode == "notContains") return !normalizedValue.includes(normalizedQuery);
+    if (mode == "notEquals") return normalizedValue != normalizedQuery;
+    if (mode == "wildcard" || mode == "notWildcard") {
+        var wildcard = normalizedQuery.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".");
+        var wildcardMatch = new RegExp("^" + wildcard + "$", caseSensitive ? "" : "i").test(String(value || ""));
+        return mode == "wildcard" ? wildcardMatch : !wildcardMatch;
+    }
+    if (mode == "regex" || mode == "notRegex") {
+        var regexMatch = false;
+        try { regexMatch = new RegExp(normalizedQuery, caseSensitive ? "" : "i").test(String(value || "")); } catch (error) { regexMatch = false; }
+        return mode == "regex" ? regexMatch : !regexMatch;
     }
     return normalizedValue.includes(normalizedQuery);
 }
@@ -140,7 +153,18 @@ function createSearchValues(reqItem, entity, responseBody) {
         .concat(getHeaderSearchValues(response.headers), getHeaderSearchValues(response.cookies));
     return {
         url: [entity.fullURL],
+        "request-method": [entity.method],
+        "request-type": [entity.method, entity.protocolGroup],
+        "request-headers": getHeaderSearchValues(request.headers),
+        "request-body": [postData.text || ""],
+        "request-params": getHeaderSearchValues(request.queryString).concat(getHeaderSearchValues(postData.params)),
+        "request-cookies": getHeaderSearchValues(request.cookies),
         request: requestValues,
+        "response-type": [entity.mimeType],
+        "response-headers": getHeaderSearchValues(response.headers),
+        "response-body": [responseBody],
+        "response-cookies": getHeaderSearchValues(response.cookies),
+        status: [String(response.status), response.statusText || ""],
         response: responseValues,
         all: requestValues.concat(responseValues, entity.domain, entity.applicationLabel,
             entity.application == "__none__" ? "" : entity.application)
@@ -332,6 +356,7 @@ function runSearch() {
     var query = $(".search").val() || "";
     var searchMode = $(".search-mode").val() || "contains";
     var searchField = $(".search-field").val() || "all";
+    var caseSensitive = $(".case-sensitive").attr("aria-pressed") == "true";
     var activeFilters = {};
     $(".quick-filter.selected").each(function () {
         var filter = $(this).attr("data-filter");
@@ -368,7 +393,7 @@ function runSearch() {
             return;
         }
         var searchValues = entity.searchValues[searchField] || entity.searchValues.all;
-        if (query.length > 0 && !searchValues.some(function (value) { return matchesSearchText(value, query, searchMode); })) {
+        if (query.length > 0 && !searchValues.some(function (value) { return matchesSearchText(value, query, searchMode, caseSensitive); })) {
             $(this).hide();
             return;
         }
@@ -895,6 +920,11 @@ function setupGUI() {
 
     $(".domain-filter,.application-filter,.search-field,.search-mode").off().on("change", runSearch);
     $(".search").off().on("input", runSearch);
+    $(".case-sensitive").off().on("click", function () {
+        var enabled = $(this).attr("aria-pressed") != "true";
+        $(this).attr("aria-pressed", enabled ? "true" : "false").toggleClass("selected", enabled);
+        runSearch();
+    });
     $(".clear-search").off().on("click", function () {
         $(".search").val("");
         runSearch();
@@ -902,9 +932,15 @@ function setupGUI() {
     });
     $(".inspector-close").off().on("click", closeInspector);
 
-    $(".request-items .request-item").off().on("click", function () {
-        selectReq(Number($(this).attr("index")));
-    });
+    $(".request-items .request-item").off()
+        .on("click", function () {
+            selectedIndex = Number($(this).attr("index"));
+            $(".request-item.selected").removeClass("selected");
+            $(this).addClass("selected");
+        })
+        .on("dblclick", function () {
+            selectReq(Number($(this).attr("index")));
+        });
 
     setupInspectorResizer();
     setupInspectorURLScroller();

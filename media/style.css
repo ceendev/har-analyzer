@@ -178,6 +178,20 @@ body {
     line-height: 1;
 }
 
+.case-sensitive {
+    height: 34px;
+    min-width: 34px;
+    border: 1px solid var(--vscode-input-border, var(--vscode-editorGroup-border));
+    color: var(--vscode-descriptionForeground);
+    background: var(--vscode-input-background, var(--vscode-editor-background));
+    cursor: pointer;
+}
+
+.case-sensitive.selected {
+    color: var(--vscode-button-foreground);
+    background: var(--vscode-button-background);
+}
+
 .inspector-copy {
     display: inline-flex;
     flex: 0 0 28px;
