@@ -908,6 +908,7 @@ function setupGUI() {
 
     applyInspectorPanelState();
     renderRawViews();
+    renderJSONBodyViews();
 
     $(".quick-filter").off().on("click", function () {
         var filter = $(this).attr("data-filter");
@@ -1189,6 +1190,54 @@ function format(text, mimeType) {
     }
 }
 
+function isJSONMimeType(mimeType) {
+    var normalized = String(mimeType || "").toLowerCase().split(";", 1)[0].trim();
+    return normalized == "application/json" || normalized.endsWith("+json");
+}
+
+function renderJSONNode(value, label) {
+    var isObject = value !== null && typeof value == "object";
+    var row = document.createElement("div");
+    row.className = "json-node";
+    if (!isObject) {
+        var leaf = document.createElement("span");
+        leaf.className = "json-leaf";
+        leaf.textContent = (label != null ? label + ": " : "") + (value === null ? "null" : String(value));
+        row.appendChild(leaf);
+        return row;
+    }
+    var details = document.createElement("details");
+    details.open = true;
+    var summary = document.createElement("summary");
+    summary.textContent = (label != null ? label + ": " : "") + (Array.isArray(value) ? "[ ]" : "{ }");
+    details.appendChild(summary);
+    Object.keys(value).forEach(function (key) {
+        details.appendChild(renderJSONNode(value[key], key));
+    });
+    row.appendChild(details);
+    return row;
+}
+
+function renderJSONBodyViews() {
+    $(".json-body-viewer").each(function () {
+        var viewer = this;
+        var source = viewer.getAttribute("data-json-source");
+        var raw = source == "request" ? selectedReq && selectedReq.requestBodyRaw : selectedReq && selectedReq.responseBodyRaw;
+        var mime = source == "request" ? selectedReq && selectedReq.requestBodyMime : selectedReq && selectedReq.mimeType;
+        viewer.innerHTML = "";
+        viewer.hidden = true;
+        var textBlock = source == "request" ? document.querySelector(".request-body-text") : document.querySelector(".response-panel .code-block.shorten");
+        if (selectedReq && isJSONMimeType(mime) && raw) {
+            try {
+                viewer.appendChild(renderJSONNode(JSON.parse(raw), null));
+                viewer.hidden = false;
+                if (textBlock) textBlock.hidden = true;
+            } catch (error) { /* malformed JSON remains in the text view */ }
+        }
+        if (textBlock && viewer.hidden) textBlock.hidden = false;
+    });
+}
+
 async function loadHARByURL(harURL) {
     try {
         const response = await fetch(harURL);
@@ -1273,6 +1322,9 @@ function addRequestItem(reqItem) {
         "index": reqs.length,
         "content": content,
         "requestBody": requestBody,
+        "requestBodyRaw": requestPostData.text || "",
+        "requestBodyMime": requestPostData.mimeType || getHeaderValue(reqItem.request.headers, "content-type") || "",
+        "responseBodyRaw": responseBody,
         "contentShort": content.substring(0, 5000),
         "mimeType": mimeType,
         "formatted": formatted,
