@@ -2,6 +2,18 @@
 
 All notable changes to Har Assist are documented here.
 
+## 0.1.6
+
+- Fix quick-filter group lookup so every toolbar button filters requests correctly,
+  with OR within groups and AND across groups.
+- Normalize domains consistently in dropdown options and request entries, recognize
+  WebSocket handshakes and SVG images, and use captured response metadata as fallbacks.
+- Search full request/response headers and bodies, including UTF-8 base64 text,
+  with value-based prefix and exact matching.
+- Preserve native toolbar keyboard controls and restrict request navigation to
+  visible results; close stale inspectors when their request is filtered out.
+- Add DOM interaction regression tests for toolbar controls and filter combinations.
+
 ## 0.1.5
 
 - Rebrand the extension as `Har Assist` with extension ID

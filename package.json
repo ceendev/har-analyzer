@@ -2,7 +2,7 @@
   "name": "har-assist",
   "displayName": "Har Assist",
   "description": "A visual HAR assistant for VS Code with automatic file opening, fast request filtering, resizable tables, and split request/response inspection.",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "publisher": "yeceen",
   "homepage": "https://github.com/ceendev/har-assist",
   "license": "GPL-3",
@@ -59,7 +59,7 @@
     ]
   },
   "scripts": {
-    "check": "node --check extension.js && node --check media/script.js && node test/custom-editor.test.js && node test/har-entry.test.js && node test/filter-behavior.test.js",
+    "check": "node --check extension.js && node --check media/script.js && node test/custom-editor.test.js && node test/har-entry.test.js && node test/filter-behavior.test.js && node --test test/toolbar.test.js",
     "lint": "eslint .",
     "package": "vsce package --out har-assist.vsix",
     "pretest": "npm run lint",
@@ -74,6 +74,7 @@
     "@vscode/vsce": "3.9.2",
     "eslint": "^8.14.0",
     "glob": "^8.0.1",
+    "jsdom": "^26.1.0",
     "mocha": "^9.2.2",
     "typescript": "^4.6.4"
   },

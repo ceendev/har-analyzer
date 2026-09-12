@@ -4,11 +4,22 @@ var selectedReq;
 var selectedIndex = -1;
 var visibleIndicies = [];
 
-var handledKeystroke = false;
-var keystrokeTimeout = true;
 const vscode = acquireVsCodeApi();
 
-function getProtocolGroup(url) {
+function getHeaderValue(headers, name) {
+    var header = (Array.isArray(headers) ? headers : []).find(function (entry) {
+        return String(entry.name || "").toLowerCase() == name.toLowerCase();
+    });
+    return header ? String(header.value || "") : "";
+}
+
+function getProtocolGroup(url, reqItem) {
+    var response = reqItem && reqItem.response || {};
+    if (String(reqItem && reqItem._resourceType || "").toLowerCase() == "websocket" ||
+        Array.isArray(reqItem && reqItem._webSocketMessages) ||
+        (Number(response.status) == 101 && getHeaderValue(response.headers, "upgrade").toLowerCase() == "websocket")) {
+        return "websocket";
+    }
     var protocolMatch = /^([a-z][a-z0-9+.-]*):/i.exec(url || "");
     if (!protocolMatch) {
         return "other";
@@ -24,7 +35,8 @@ function getProtocolGroup(url) {
 }
 
 function getHttpVersionGroup(reqItem) {
-    var version = (reqItem && reqItem.request && reqItem.request.httpVersion) || "";
+    var version = String((reqItem && reqItem.request && reqItem.request.httpVersion) ||
+        (reqItem && reqItem.response && reqItem.response.httpVersion) || "").trim();
     if (/^(?:HTTP\/?)?2(?:\.0)?$/i.test(version) || /^h2$/i.test(version)) {
         return "http2";
     }
@@ -50,6 +62,12 @@ function getStatusGroup(status) {
 
 function getContentGroup(mimeType) {
     var normalizedMimeType = String(mimeType || "").toLowerCase().split(";", 1)[0].trim();
+    if (normalizedMimeType.startsWith("image/")) {
+        return "image";
+    }
+    if (normalizedMimeType.startsWith("audio/") || normalizedMimeType.startsWith("video/")) {
+        return "media";
+    }
     if (normalizedMimeType.includes("json")) {
         return "json";
     }
@@ -61,12 +79,6 @@ function getContentGroup(mimeType) {
     }
     if (normalizedMimeType.includes("javascript") || normalizedMimeType.includes("ecmascript")) {
         return "javascript";
-    }
-    if (normalizedMimeType.startsWith("image/")) {
-        return "image";
-    }
-    if (normalizedMimeType.startsWith("audio/") || normalizedMimeType.startsWith("video/")) {
-        return "media";
     }
     if (normalizedMimeType.startsWith("text/")) {
         return "text";
@@ -103,6 +115,55 @@ function matchesSearchText(value, query, mode) {
         return normalizedValue == normalizedQuery;
     }
     return normalizedValue.includes(normalizedQuery);
+}
+
+function getHeaderSearchValues(headers) {
+    var values = [];
+    (Array.isArray(headers) ? headers : []).forEach(function (header) {
+        values.push(header.name || "", header.value || "", (header.name || "") + ": " + (header.value || ""));
+    });
+    return values;
+}
+
+function createSearchValues(reqItem, entity, responseBody) {
+    var request = reqItem.request;
+    var response = reqItem.response;
+    var postData = request.postData || {};
+    var requestValues = [entity.fullURL, entity.method, entity.rawRequest, postData.mimeType || ""]
+        .concat(getHeaderSearchValues(request.headers), getHeaderSearchValues(request.cookies),
+            getHeaderSearchValues(request.queryString), getHeaderSearchValues(postData.params), postData.text || "");
+    (Array.isArray(postData.params) ? postData.params : []).forEach(function (parameter) {
+        requestValues.push(parameter.fileName || "", parameter.contentType || "");
+    });
+    var responseValues = [String(response.status), response.statusText || "", entity.status,
+        entity.mimeType, responseBody, entity.rawResponse]
+        .concat(getHeaderSearchValues(response.headers), getHeaderSearchValues(response.cookies));
+    return {
+        url: [entity.fullURL],
+        request: requestValues,
+        response: responseValues,
+        all: requestValues.concat(responseValues, entity.domain, entity.applicationLabel,
+            entity.application == "__none__" ? "" : entity.application)
+    };
+}
+
+function decodeResponseBody(responseContent, mimeType) {
+    var text = responseContent.text || "";
+    if (responseContent.encoding != "base64") {
+        return text;
+    }
+    var binary = atob(text);
+    var contentGroup = getContentGroup(mimeType);
+    if (["image", "media", "binary"].includes(contentGroup) || typeof TextDecoder == "undefined") {
+        return binary;
+    }
+    var charset = /charset\s*=\s*["']?([^;\s"']+)/i.exec(mimeType);
+    var bytes = Uint8Array.from(binary, function (character) { return character.charCodeAt(0); });
+    try {
+        return new TextDecoder(charset ? charset[1] : "utf-8").decode(bytes);
+    } catch (error) {
+        return new TextDecoder("utf-8").decode(bytes);
+    }
 }
 
 function matchesFilterGroups(filterValues, activeFilters) {
@@ -275,7 +336,7 @@ function runSearch() {
     $(".quick-filter.selected").each(function () {
         var filter = $(this).attr("data-filter");
         if (filter != "all") {
-            var group = $(this).attr("data-filter-group");
+            var group = $(this).closest("[data-filter-group]").attr("data-filter-group");
             if (!activeFilters[group]) {
                 activeFilters[group] = [];
             }
@@ -306,36 +367,37 @@ function runSearch() {
             $(this).hide();
             return;
         }
-        var searchValues = {
-            all: [entity.fullURL, entity.method, entity.domain, entity.applicationLabel, entity.status, entity.mimeType, entity.contentShort].join(" "),
-            url: entity.fullURL,
-            request: [entity.method, entity.fullURL, entity.requestText].join(" "),
-            response: [entity.status, entity.mimeType, entity.contentShort, entity.responseText].join(" ")
-        };
-        if (query.length > 0 && !matchesSearchText(searchValues[searchField], query, searchMode)) {
+        var searchValues = entity.searchValues[searchField] || entity.searchValues.all;
+        if (query.length > 0 && !searchValues.some(function (value) { return matchesSearchText(value, query, searchMode); })) {
             $(this).hide();
             return;
         }
         $(this).show();
         visibleIndicies.push(i);
     });
+    if (selectedIndex >= 0 && !visibleIndicies.includes(selectedIndex)) {
+        closeInspector();
+    }
 }
 
-function getNextValue(thisIndex, higher) {
-    if (higher) {
-        for (i = 0; i < visibleIndicies.length; i++) {
-            if (visibleIndicies[i] > thisIndex) {
-                return visibleIndicies[i];
-            }
-        }
-    } else {
-        for (i = visibleIndicies.length - 1; i >= 0; i--) {
-            if (visibleIndicies[i] < thisIndex) {
-                return visibleIndicies[i];
-            }
-        }
+function handleRequestNavigation(event) {
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ||
+        (event.key != "ArrowUp" && event.key != "ArrowDown") || visibleIndicies.length == 0 ||
+        $(event.target).closest(".toolbar, .request-inspector, input, textarea, select, button, [contenteditable]:not([contenteditable='false']), [role='separator']").length > 0) {
+        return;
     }
-    return -1;
+    event.preventDefault();
+    var position = visibleIndicies.indexOf(selectedIndex);
+    if (position < 0) {
+        position = event.key == "ArrowDown" ? 0 : visibleIndicies.length - 1;
+    } else {
+        position = Math.max(0, Math.min(visibleIndicies.length - 1, position + (event.key == "ArrowDown" ? 1 : -1)));
+    }
+    selectReq(visibleIndicies[position]);
+    var selectedItem = $(".request-items .request-item[index='" + selectedIndex + "']").get(0);
+    if (selectedItem) {
+        selectedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 }
 
 function closeInspector() {
@@ -756,8 +818,8 @@ function setupDataTableColumnResizers() {
 }
 
 function populateFilterOptions(entries) {
-    var domains = {};
-    var applications = {};
+    var domains = Object.create(null);
+    var applications = Object.create(null);
     var hasUnlabeledApplication = false;
     for (var i = 0; i < entries.length; i++) {
         var entry = entries[i];
@@ -848,80 +910,9 @@ function setupGUI() {
     setupInspectorURLScroller();
     setupRequestColumnResizers();
 
-    document.addEventListener('keydown', (e) => {
-        if (keystrokeTimeout) {
-            keystrokeTimeout = false;
-            setTimeout(function () {
-                handledKeystroke = false;
-                keystrokeTimeout = true;
-            }, 100);
-        }
-    });
-
+    document.removeEventListener('keydown', handleRequestNavigation);
+    document.addEventListener('keydown', handleRequestNavigation);
     runSearch();
-
-    document.addEventListener('keydown', (e) => {
-        if ($(e.target).hasClass("search")) {
-            runSearch();
-        }
-        if (e.code === "ArrowUp" && !handledKeystroke) {
-            e.preventDefault();
-            if (selectedIndex == -1) {
-                selectedIndex = reqs.length - 1;
-                selectReq(reqs.length - 1);
-                handledKeystroke = true;
-            } else {
-                if (selectedIndex != 0) {
-                    selectedIndex--;
-                    if (visibleIndicies.includes(selectedIndex)) {
-                        selectReq(selectedIndex);
-                        handledKeystroke = true;
-                    } else {
-                        var temp = getNextValue(selectedIndex, false);
-                        if (temp != -1) {
-                            selectedIndex = temp;
-                            selectReq(selectedIndex);
-                        } else {
-                            selectedIndex++;
-                        }
-                        handledKeystroke = true;
-                    }
-                }
-            }
-        }
-        if (e.code === "ArrowDown" && !handledKeystroke) {
-            e.preventDefault();
-            if (selectedIndex == -1) {
-                selectedIndex = 0;
-                selectReq(0);
-                handledKeystroke = true;
-            } else {
-                if (selectedIndex < reqs.length - 1) {
-                    selectedIndex++;
-                    if (visibleIndicies.includes(selectedIndex)) {
-                        selectReq(selectedIndex);
-                        handledKeystroke = true;
-                    } else {
-                        var temp = getNextValue(selectedIndex, true);
-                        if (temp != -1) {
-                            selectedIndex = temp;
-                            selectReq(selectedIndex);
-                        } else {
-                            selectedIndex--;
-                        }
-                        handledKeystroke = true;
-                    }
-                }
-            }
-        }
-        var selectedItem = $(".request-item[index='" + selectedIndex + "']").get(0);
-        if (selectedItem) {
-            selectedItem.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest'
-            });
-        }
-    });
 }
 
 function getNested(path) {
@@ -1198,9 +1189,9 @@ function showLoadError(error) {
 function addRequestItem(reqItem) {
     var endpointRegEx = new RegExp("^[^:]*:\/\/([^/]*)([^?]*)");
     var endpointComponents = endpointRegEx.exec(reqItem.request.url);
-    var mimeType = reqItem.response.content.mimeType || "text/plain";
+    var mimeType = reqItem.response.content.mimeType || getHeaderValue(reqItem.response.headers, "content-type") || "text/plain";
     var application = getApplicationInfo(reqItem);
-    var domain = endpointComponents ? endpointComponents[1] : getRequestDomain(reqItem.request.url);
+    var domain = getRequestDomain(reqItem.request.url);
     var endpoint = endpointComponents ? endpointComponents[2] : reqItem.request.url;
     var requestHeaders = Array.isArray(reqItem.request.headers) ? reqItem.request.headers : [];
     var referer = "";
@@ -1211,11 +1202,9 @@ function addRequestItem(reqItem) {
     }
     var content = "";
     var formatted = false;
+    var responseBody = decodeResponseBody(reqItem.response.content, mimeType);
     if (reqItem.response.content.text != null) {
-        content = reqItem.response.content.text;
-        if (reqItem.response.content.encoding == "base64") {
-            content = atob(reqItem.response.content.text);
-        }
+        content = responseBody;
         if (mimeType != "text/plain") {
             if (mimeType.includes("image/")) {
                 content = "data:" + mimeType.split("/")[1] + ";base64," + reqItem.response.content.text;
@@ -1233,7 +1222,7 @@ function addRequestItem(reqItem) {
         "endpoint": endpoint,
         "application": application.key,
         "applicationLabel": application.label,
-        "httpVersion": reqItem.request.httpVersion || "HTTP/1.1",
+        "httpVersion": reqItem.request.httpVersion || reqItem.response.httpVersion || "HTTP/1.1",
         "referer": referer,
         "status": reqItem.response.status + " " + reqItem.response.statusText,
         "index": reqs.length,
@@ -1241,17 +1230,16 @@ function addRequestItem(reqItem) {
         "contentShort": content.substring(0, 5000),
         "mimeType": mimeType,
         "formatted": formatted,
-        "protocolGroup": getProtocolGroup(reqItem.request.url),
+        "protocolGroup": getProtocolGroup(reqItem.request.url, reqItem),
         "httpVersionGroup": getHttpVersionGroup(reqItem),
         "methodGroup": getMethodGroup(reqItem.request.method),
         "contentGroup": getContentGroup(mimeType),
         "statusGroup": getStatusGroup(reqItem.response.status),
-        "requestText": [reqItem.request.method, reqItem.request.url, JSON.stringify(requestHeaders), JSON.stringify(reqItem.request.postData || {})].join(" "),
-        "responseText": [reqItem.response.statusText, JSON.stringify(reqItem.response.headers || [])].join(" "),
         "rawRequest": formatRawRequest(reqItem),
         "rawResponse": formatRawResponse(reqItem, content),
         "obj": reqItem
     };
+    item.searchValues = createSearchValues(reqItem, item, responseBody);
     reqs.push(item);
     addRequestGUIItem(item);
 }

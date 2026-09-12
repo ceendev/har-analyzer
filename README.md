@@ -27,6 +27,13 @@ files that exceed VS Code's normal text-document size limit.
 - Parse HAR data directly in the WebView, with available memory as the practical
   file-size limit.
 
+Filters within a quick-filter group use OR; different groups, domain, application,
+and search filters use AND. **All** clears only the quick filters, while the search
+clear button clears only the search text. Search is case-insensitive and covers
+the complete captured request/response headers and bodies, not just the body
+preview. **Starts with** and **Equals** match individual values in the selected
+scope (for example a URL, header value, or body).
+
 ## Development
 
 Use Node.js 22 or later:
